@@ -1,0 +1,26 @@
+version: '3.3'
+
+services:
+  bookquiz-service:
+    image: jjoonleo/bookquiz-api
+    container_name: bookquiz-service
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - DB_URL=jdbc:postgresql://bookquiz-db:5432/bookquiz_db
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=${DB_PASSWORD}
+      - MANAGEMENT_TRACING_ENABLED=true
+      - MANAGEMENT_ZIPKIN_TRACING_ENDPOINT=http://tempo:9411
+    ports:
+      - "8081:8081"
+    restart: unless-stopped
+    depends_on:
+      - bookquiz-db
+    deploy:
+      resources:
+        limits:
+          memory: 700M
+    networks:
+      - backend
+    labels:
+      logging: "promtail"
