@@ -51,6 +51,10 @@ data class User(
     @Column(name = "role", columnDefinition = "role_enum", nullable = false)
     val role: Role = Role.USER,
 
+    @Convert(converter = GradeEnumConverter::class)
+    @Column(name = "grade", columnDefinition = "grade_enum", nullable = false)
+    val grade: Grade,
+
     @Column(nullable = false)
     val banned: Boolean = false,
 
