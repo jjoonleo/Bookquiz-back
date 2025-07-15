@@ -1,0 +1,19 @@
+CREATE TYPE province_enum AS ENUM (
+  'SEOUL',
+  'BUSAN',
+  'DAEJEON',
+  'DAEGU',
+  'GWANGJU',
+  'INCHEON',
+  'ULSAN',
+  'GYEONGGI',
+  'GANGWON',
+  'CHUNGBUK',
+  'CHUNGNAM',
+  'JEONBUK',
+  'JEONNAM',
+  'GYEONGBUK',
+  'GYEONGNAM',
+  'JEJU',
+  'ETC_OVERSEAS'
+);
