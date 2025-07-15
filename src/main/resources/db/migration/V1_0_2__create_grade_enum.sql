@@ -16,4 +16,5 @@ CREATE TYPE grade_enum AS ENUM (
   'HIGH_3',
   'COLLEGE_GENERAL'
 );
-ALTER TABLE users ADD COLUMN grade grade_enum NOT NULL;
+ALTER TABLE users
+ADD COLUMN grade grade_enum NOT NULL
