@@ -9,10 +9,13 @@ services:
       - DB_URL=jdbc:postgresql://bookquiz-db:5432/bookquiz_db
       - DB_USERNAME=postgres
       - DB_PASSWORD=${DB_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRATION=${JWT_EXPIRATION}
+      - JWT_REFRESH_EXPIRATION=${JWT_REFRESH_EXPIRATION}
       - MANAGEMENT_TRACING_ENABLED=true
       - MANAGEMENT_ZIPKIN_TRACING_ENDPOINT=http://tempo:9411
     ports:
-      - "8081:8081"
+      - "8080:8080"
     restart: unless-stopped
     depends_on:
       - bookquiz-db
