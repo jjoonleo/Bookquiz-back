@@ -42,7 +42,10 @@ class DefaultSecurityConfig(
             "select username, password, enabled from users where username = ? and deleted = false"
         )
         manager.setAuthoritiesByUsernameQuery(
-            "select u.username, a.authority from users u inner join authorities a on u.username = a.username where u.username = ? and u.deleted = false"
+            "select u.username, a.name from users u " +
+            "inner join user_authorities ua on u.username = ua.username " +
+            "inner join authorities a on ua.authority_id = a.id " +
+            "where u.username = ? and u.deleted = false"
         )
 
         return manager

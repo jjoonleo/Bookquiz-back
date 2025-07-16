@@ -43,6 +43,10 @@ class SignupService(
         }
 
         try {
+            // Get or create default authority (ROLE_USER)
+            val defaultAuthority = authorityRepository.findByName("ROLE_USER")
+                ?: authorityRepository.save(Authority(name = "ROLE_USER", description = "Default user role"))
+
             // Create new user
             val user = User(
                 username = signupRequest.username,
@@ -60,18 +64,11 @@ class SignupService(
                 lastLogin = null,
                 createdAt = LocalDateTime.now(),
                 updatedAt = LocalDateTime.now(),
-                authorities = emptySet()
+                authorities = setOf(defaultAuthority)
             )
 
             // Save user
             val savedUser = userRepository.save(user)
-
-            // Create default authority (ROLE_USER)
-            val authority = Authority(
-                authority = "ROLE_USER",
-                user = savedUser
-            )
-            authorityRepository.save(authority)
 
             return SignupResponse(
                 username = savedUser.username,
