@@ -1,11 +1,14 @@
 package kr.co.bookquiz.api.entity
 
+import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
 import jakarta.persistence.Convert
 import jakarta.persistence.Entity
+import jakarta.persistence.FetchType
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
+import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
@@ -17,14 +20,13 @@ import java.time.LocalDateTime
 @Table(name = "users")
 data class User(
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "user_id")
-    val id: java.util.UUID,
+    @Column(unique = true, nullable = false, length = 50)
+    val username: String,
 
-    @Column(nullable = false, length = 50)
+    @Column(nullable = false, length = 64)
     val name: String,
 
-    @Column(nullable = false, length = 60)
+    @Column(nullable = false, length = 255)
     val password: String,
 
     @NotBlank
@@ -35,7 +37,7 @@ data class User(
 
     @Pattern(regexp = "^\\+[1-9]\\d{1,14}$", message = "Phone number must be in E.164 format (e.g., +12345678901)")
     @Size(max = 20) // Max length for E.164 is 15 digits + '+'
-    @Column(length = 20, nullable = false) // Can be nullable if phone is optional
+    @Column(unique = true, length = 20, nullable = false) // Can be nullable if phone is optional
     val phoneNumber: String,
 
     @Column(name = "date_of_birth", nullable = false)
@@ -47,16 +49,13 @@ data class User(
     @Column(nullable = false)
     val deleted: Boolean = false,
 
-    @Convert(converter = RoleEnumConverter::class)
-    @Column(name = "role", columnDefinition = "role_enum", nullable = false)
-    val role: Role = Role.USER,
 
     @Convert(converter = GradeEnumConverter::class)
     @Column(name = "grade", columnDefinition = "grade_enum", nullable = false)
     val grade: Grade,
 
     @Column(nullable = false)
-    val banned: Boolean = false,
+    val enabled: Boolean = false,
 
     @Column(nullable = false)
     val gender: Boolean,
@@ -72,4 +71,7 @@ data class User(
 
     @Column(name = "updated_at", nullable = false)
     val updatedAt: LocalDateTime = LocalDateTime.now(),
+
+    @OneToMany(mappedBy = "user", cascade = [CascadeType.ALL], fetch = FetchType.LAZY)
+    val authorities: Set<Authority> = emptySet()
 )

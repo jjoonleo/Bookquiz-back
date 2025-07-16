@@ -7,6 +7,7 @@ plugins {
     id("io.spring.dependency-management") version "1.1.7"
     kotlin("plugin.jpa") version "1.9.25"
     id("org.jlleitschuh.gradle.ktlint") version "10.2.0"
+    id("org.flywaydb.flyway") version "9.22.3"
 }
 
 group = "kr.co.bookquiz"
@@ -72,4 +73,10 @@ tasks.build {
 tasks.named<BootBuildImage>("bootBuildImage") {
     imageName.set(dockerImageName)
     builder.set("dashaun/builder:tiny")
+}
+
+flyway {
+    url = "jdbc:postgresql://localhost:5432/bookquiz_db"
+    user = "postgres"
+    password = "postgres"
 }
