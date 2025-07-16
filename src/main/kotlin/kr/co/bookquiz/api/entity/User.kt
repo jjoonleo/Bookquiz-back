@@ -2,11 +2,10 @@ package kr.co.bookquiz.api.entity
 
 import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
-import jakarta.persistence.Convert
 import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
 import jakarta.persistence.FetchType
-import jakarta.persistence.GeneratedValue
-import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
@@ -14,6 +13,8 @@ import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Pattern
 import jakarta.validation.constraints.Size
+import org.hibernate.annotations.JdbcTypeCode
+import org.hibernate.type.SqlTypes
 import java.time.LocalDateTime
 
 @Entity
@@ -43,14 +44,16 @@ data class User(
     @Column(name = "date_of_birth", nullable = false)
     val dateOfBirth: LocalDateTime,
 
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(name = "province", columnDefinition = "province_enum", nullable = false)
     val province: Province,
 
     @Column(nullable = false)
     val deleted: Boolean = false,
 
-
-    @Convert(converter = GradeEnumConverter::class)
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(name = "grade", columnDefinition = "grade_enum", nullable = false)
     val grade: Grade,
 

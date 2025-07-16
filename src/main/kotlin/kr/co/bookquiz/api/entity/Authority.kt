@@ -12,14 +12,17 @@ import jakarta.persistence.Table
 import jakarta.persistence.UniqueConstraint
 
 @Entity
-@Table(name = "authorities", uniqueConstraints = [
-    UniqueConstraint(columnNames = ["username", "authority"])
-])
+@Table(
+    name = "authorities",
+    uniqueConstraints = [
+        UniqueConstraint(columnNames = ["username", "authority"])
+    ]
+)
 data class Authority(
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long? = null,  // Optional surrogate key
+    val id: Long? = null, // Optional surrogate key
 
     @Column(nullable = false)
     val authority: String,
