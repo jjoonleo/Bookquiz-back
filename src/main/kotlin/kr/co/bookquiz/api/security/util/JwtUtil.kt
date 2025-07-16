@@ -10,17 +10,16 @@ import io.jsonwebtoken.security.SecurityException
 import kr.co.bookquiz.api.api.exception.ApiException
 import kr.co.bookquiz.api.api.exception.ErrorCode
 import kr.co.bookquiz.api.config.JwtProperties
-import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.stereotype.Component
-import org.springframework.boot.context.properties.EnableConfigurationProperties
 import java.util.Date
 import javax.crypto.SecretKey
 
 @Component
 @EnableConfigurationProperties(JwtProperties::class)
-class JwtUtil (
+class JwtUtil(
     private val jwtProperties: JwtProperties
 ) {
 

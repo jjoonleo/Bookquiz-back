@@ -41,7 +41,7 @@ class AuthService(
             val refreshToken = jwtUtil.generateRefreshToken(userDetails.username)
 
             // Update refresh token in database
-            val user = userRepository.findByUsernameAndDeletedFalseWithAuthorities(userDetails.username)
+            val user = userRepository.findByUsernameAndDeletedFalse(userDetails.username)
                 ?: throw ApiException(ErrorCode.USER_NOT_FOUND)
             user.refreshToken = refreshToken
             userRepository.save(user)
