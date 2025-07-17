@@ -20,6 +20,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.BDDMockito.given
 import org.mockito.BDDMockito.then
 import org.mockito.Mockito.*
+import org.mockito.ArgumentMatchers.anyLong
 import org.mockito.junit.jupiter.MockitoExtension
 import java.util.*
 
@@ -75,9 +76,9 @@ class BookServiceTest {
             publisher = "Test Publisher",
             quizPrice = 1000,
             thumbnail = "https://example.com/thumbnail.jpg",
-            authorIds = listOf(1L),
-            translatorIds = listOf(2L),
-            illustratorIds = listOf(3L)
+            authorNames = listOf("Test Author"),
+            translatorNames = listOf("Test Translator"),
+            illustratorNames = listOf("Test Illustrator")
         )
 
         testBookUpdateRequest = BookUpdateRequest(
@@ -86,18 +87,18 @@ class BookServiceTest {
             publisher = "Test Publisher",
             quizPrice = 1000,
             thumbnail = "https://example.com/thumbnail.jpg",
-            authorIds = listOf(1L),
-            translatorIds = listOf(2L),
-            illustratorIds = listOf(3L)
+            authorNames = listOf("Test Author"),
+            translatorNames = listOf("Test Translator"),
+            illustratorNames = listOf("Test Illustrator")
         )
     }
 
     @Test
     fun `should create book successfully`() {
         // Given
-        given(authorRepository.findAllById(testBookCreateRequest.authorIds)).willReturn(listOf(testAuthor))
-        given(translatorRepository.findAllById(testBookCreateRequest.translatorIds)).willReturn(listOf(testTranslator))
-        given(illustratorRepository.findAllById(testBookCreateRequest.illustratorIds)).willReturn(listOf(testIllustrator))
+        given(authorRepository.findByName("Test Author")).willReturn(Optional.of(testAuthor))
+        given(translatorRepository.findByName("Test Translator")).willReturn(Optional.of(testTranslator))
+        given(illustratorRepository.findByName("Test Illustrator")).willReturn(Optional.of(testIllustrator))
         given(bookRepository.save(any(Book::class.java))).willReturn(testBook)
 
         // When
@@ -109,73 +110,73 @@ class BookServiceTest {
         assertThat(result.isbn).isEqualTo("978-0123456789")
         assertThat(result.authors).hasSize(1)
         assertThat(result.authors[0].name).isEqualTo("Test Author")
-        then(authorRepository).should().findAllById(testBookCreateRequest.authorIds)
-        then(translatorRepository).should().findAllById(testBookCreateRequest.translatorIds)
-        then(illustratorRepository).should().findAllById(testBookCreateRequest.illustratorIds)
+        then(authorRepository).should().findByName("Test Author")
+        then(translatorRepository).should().findByName("Test Translator")
+        then(illustratorRepository).should().findByName("Test Illustrator")
         then(bookRepository).should().save(any(Book::class.java))
     }
 
     @Test
-    fun `should throw exception when author not found during creation`() {
+    fun `should create new author when not found`() {
         // Given
-        val createRequestWithMissingAuthor = testBookCreateRequest.copy(authorIds = listOf(1L, 2L))
+        val newAuthor = Author(id = 2L, name = "New Author")
+        val createRequestWithNewAuthor = testBookCreateRequest.copy(authorNames = listOf("New Author"))
+        
+        given(authorRepository.findByName("New Author")).willReturn(Optional.empty())
+        given(authorRepository.save(any(Author::class.java))).willReturn(newAuthor)
+        given(translatorRepository.findByName("Test Translator")).willReturn(Optional.of(testTranslator))
+        given(illustratorRepository.findByName("Test Illustrator")).willReturn(Optional.of(testIllustrator))
+        given(bookRepository.save(any(Book::class.java))).willReturn(testBook)
 
-        given(authorRepository.findAllById(createRequestWithMissingAuthor.authorIds)).willReturn(listOf(testAuthor)) // Missing author-2
+        // When
+        bookService.createBook(createRequestWithNewAuthor)
 
-        // When & Then
-        val exception = assertThrows<EntityNotFoundException> {
-            bookService.createBook(createRequestWithMissingAuthor)
-        }
-
-        assertThat(exception.errorCode).isEqualTo(ErrorCode.AUTHOR_NOT_FOUND)
-        assertThat(exception.entityType).isEqualTo("Author")
-        assertThat(exception.missingIds).containsExactly("2")
-        then(authorRepository).should().findAllById(createRequestWithMissingAuthor.authorIds)
-        verifyNoInteractions(bookRepository)
+        // Then
+        then(authorRepository).should().findByName("New Author")
+        then(authorRepository).should().save(any(Author::class.java))
+        then(bookRepository).should().save(any(Book::class.java))
     }
 
     @Test
-    fun `should throw exception when translator not found during creation`() {
+    fun `should create new translator when not found`() {
         // Given
-        val createRequestWithMissingTranslator = testBookCreateRequest.copy(translatorIds = listOf(2L, 3L))
+        val newTranslator = Translator(id = 3L, name = "New Translator")
+        val createRequestWithNewTranslator = testBookCreateRequest.copy(translatorNames = listOf("New Translator"))
+        
+        given(authorRepository.findByName("Test Author")).willReturn(Optional.of(testAuthor))
+        given(translatorRepository.findByName("New Translator")).willReturn(Optional.empty())
+        given(translatorRepository.save(any(Translator::class.java))).willReturn(newTranslator)
+        given(illustratorRepository.findByName("Test Illustrator")).willReturn(Optional.of(testIllustrator))
+        given(bookRepository.save(any(Book::class.java))).willReturn(testBook)
 
-        given(authorRepository.findAllById(createRequestWithMissingTranslator.authorIds)).willReturn(listOf(testAuthor))
-        given(translatorRepository.findAllById(createRequestWithMissingTranslator.translatorIds)).willReturn(listOf(testTranslator)) // Missing translator-2
+        // When
+        bookService.createBook(createRequestWithNewTranslator)
 
-        // When & Then
-        val exception = assertThrows<EntityNotFoundException> {
-            bookService.createBook(createRequestWithMissingTranslator)
-        }
-
-        assertThat(exception.errorCode).isEqualTo(ErrorCode.TRANSLATOR_NOT_FOUND)
-        assertThat(exception.entityType).isEqualTo("Translator")
-        assertThat(exception.missingIds).containsExactly("3")
-        then(authorRepository).should().findAllById(createRequestWithMissingTranslator.authorIds)
-        then(translatorRepository).should().findAllById(createRequestWithMissingTranslator.translatorIds)
-        verifyNoInteractions(bookRepository)
+        // Then
+        then(translatorRepository).should().findByName("New Translator")
+        then(translatorRepository).should().save(any(Translator::class.java))
+        then(bookRepository).should().save(any(Book::class.java))
     }
 
     @Test
-    fun `should throw exception when illustrator not found during creation`() {
+    fun `should create new illustrator when not found`() {
         // Given
-        val createRequestWithMissingIllustrator = testBookCreateRequest.copy(illustratorIds = listOf(3L, 4L))
+        val newIllustrator = Illustrator(id = 4L, name = "New Illustrator")
+        val createRequestWithNewIllustrator = testBookCreateRequest.copy(illustratorNames = listOf("New Illustrator"))
+        
+        given(authorRepository.findByName("Test Author")).willReturn(Optional.of(testAuthor))
+        given(translatorRepository.findByName("Test Translator")).willReturn(Optional.of(testTranslator))
+        given(illustratorRepository.findByName("New Illustrator")).willReturn(Optional.empty())
+        given(illustratorRepository.save(any(Illustrator::class.java))).willReturn(newIllustrator)
+        given(bookRepository.save(any(Book::class.java))).willReturn(testBook)
 
-        given(authorRepository.findAllById(createRequestWithMissingIllustrator.authorIds)).willReturn(listOf(testAuthor))
-        given(translatorRepository.findAllById(createRequestWithMissingIllustrator.translatorIds)).willReturn(listOf(testTranslator))
-        given(illustratorRepository.findAllById(createRequestWithMissingIllustrator.illustratorIds)).willReturn(listOf(testIllustrator)) // Missing illustrator-2
+        // When
+        bookService.createBook(createRequestWithNewIllustrator)
 
-        // When & Then
-        val exception = assertThrows<EntityNotFoundException> {
-            bookService.createBook(createRequestWithMissingIllustrator)
-        }
-
-        assertThat(exception.errorCode).isEqualTo(ErrorCode.ILLUSTRATOR_NOT_FOUND)
-        assertThat(exception.entityType).isEqualTo("Illustrator")
-        assertThat(exception.missingIds).containsExactly("4")
-        then(authorRepository).should().findAllById(createRequestWithMissingIllustrator.authorIds)
-        then(translatorRepository).should().findAllById(createRequestWithMissingIllustrator.translatorIds)
-        then(illustratorRepository).should().findAllById(createRequestWithMissingIllustrator.illustratorIds)
-        verifyNoInteractions(bookRepository)
+        // Then
+        then(illustratorRepository).should().findByName("New Illustrator")
+        then(illustratorRepository).should().save(any(Illustrator::class.java))
+        then(bookRepository).should().save(any(Book::class.java))
     }
 
     @Test
@@ -219,9 +220,9 @@ class BookServiceTest {
         )
 
         given(bookRepository.findById(1L)).willReturn(Optional.of(testBook))
-        given(authorRepository.findAllById(testBookUpdateRequest.authorIds)).willReturn(listOf(testAuthor))
-        given(translatorRepository.findAllById(testBookUpdateRequest.translatorIds)).willReturn(listOf(testTranslator))
-        given(illustratorRepository.findAllById(testBookUpdateRequest.illustratorIds)).willReturn(listOf(testIllustrator))
+        given(authorRepository.findByName("Test Author")).willReturn(Optional.of(testAuthor))
+        given(translatorRepository.findByName("Test Translator")).willReturn(Optional.of(testTranslator))
+        given(illustratorRepository.findByName("Test Illustrator")).willReturn(Optional.of(testIllustrator))
         given(bookRepository.save(any(Book::class.java))).willReturn(updatedBookData)
 
         // When
@@ -231,10 +232,88 @@ class BookServiceTest {
         assertThat(result.title).isEqualTo("Updated Test Book")
         assertThat(result.quizPrice).isEqualTo(1000)
         then(bookRepository).should().findById(1L)
-        then(authorRepository).should().findAllById(testBookUpdateRequest.authorIds)
-        then(translatorRepository).should().findAllById(testBookUpdateRequest.translatorIds)
-        then(illustratorRepository).should().findAllById(testBookUpdateRequest.illustratorIds)
+        then(authorRepository).should().findByName("Test Author")
+        then(translatorRepository).should().findByName("Test Translator")
+        then(illustratorRepository).should().findByName("Test Illustrator")
         then(bookRepository).should().save(any(Book::class.java))
+    }
+
+    @Test
+    fun `should delete unused author when updating book`() {
+        // Given
+        val oldAuthor = Author(id = 2L, name = "Old Author")
+        val bookWithOldAuthor = testBook.copy(authors = listOf(oldAuthor))
+        val updatedBookData = testBook.copy(
+            title = "Updated Test Book",
+            authors = listOf(testAuthor)
+        )
+
+        given(bookRepository.findById(1L)).willReturn(Optional.of(bookWithOldAuthor))
+        given(authorRepository.findByName("Test Author")).willReturn(Optional.of(testAuthor))
+        given(translatorRepository.findByName("Test Translator")).willReturn(Optional.of(testTranslator))
+        given(illustratorRepository.findByName("Test Illustrator")).willReturn(Optional.of(testIllustrator))
+        given(authorRepository.countBooksByAuthorId(2L)).willReturn(0L) // No books left
+        given(bookRepository.save(any(Book::class.java))).willReturn(updatedBookData)
+
+        // When
+        bookService.updateBook(1L, testBookUpdateRequest)
+
+        // Then
+        then(authorRepository).should().countBooksByAuthorId(2L)
+        then(authorRepository).should().deleteById(2L)
+    }
+
+    @Test
+    fun `should not delete author when still used by other books`() {
+        // Given
+        val oldAuthor = Author(id = 2L, name = "Old Author")
+        val bookWithOldAuthor = testBook.copy(authors = listOf(oldAuthor))
+        val updatedBookData = testBook.copy(
+            title = "Updated Test Book",
+            authors = listOf(testAuthor)
+        )
+
+        given(bookRepository.findById(1L)).willReturn(Optional.of(bookWithOldAuthor))
+        given(authorRepository.findByName("Test Author")).willReturn(Optional.of(testAuthor))
+        given(translatorRepository.findByName("Test Translator")).willReturn(Optional.of(testTranslator))
+        given(illustratorRepository.findByName("Test Illustrator")).willReturn(Optional.of(testIllustrator))
+        given(authorRepository.countBooksByAuthorId(2L)).willReturn(1L) // Still has books
+        given(bookRepository.save(any(Book::class.java))).willReturn(updatedBookData)
+
+        // When
+        bookService.updateBook(1L, testBookUpdateRequest)
+
+        // Then
+        then(authorRepository).should().countBooksByAuthorId(2L)
+        then(authorRepository).should(never()).deleteById(2L)
+    }
+
+    @Test
+    fun `should create new author when updating book`() {
+        // Given
+        val newAuthor = Author(id = 3L, name = "New Author")
+        val updateRequestWithNewAuthor = testBookUpdateRequest.copy(authorNames = listOf("New Author"))
+        val updatedBookData = testBook.copy(
+            title = "Updated Test Book",
+            authors = listOf(newAuthor)
+        )
+
+        given(bookRepository.findById(1L)).willReturn(Optional.of(testBook))
+        given(authorRepository.findByName("New Author")).willReturn(Optional.empty())
+        given(authorRepository.save(any(Author::class.java))).willReturn(newAuthor)
+        given(translatorRepository.findByName("Test Translator")).willReturn(Optional.of(testTranslator))
+        given(illustratorRepository.findByName("Test Illustrator")).willReturn(Optional.of(testIllustrator))
+        given(authorRepository.countBooksByAuthorId(1L)).willReturn(0L) // Old author has no books
+        given(bookRepository.save(any(Book::class.java))).willReturn(updatedBookData)
+
+        // When
+        bookService.updateBook(1L, updateRequestWithNewAuthor)
+
+        // Then
+        then(authorRepository).should().findByName("New Author")
+        then(authorRepository).should().save(any(Author::class.java))
+        then(authorRepository).should().countBooksByAuthorId(1L)
+        then(authorRepository).should().deleteById(1L)
     }
 
     @Test
@@ -255,11 +334,46 @@ class BookServiceTest {
 
     @Test
     fun `should delete book successfully`() {
+        // Given
+        given(bookRepository.findById(1L)).willReturn(Optional.of(testBook))
+        given(authorRepository.countBooksByAuthorId(1L)).willReturn(0L) // No other books use this author
+        given(translatorRepository.countBooksByTranslatorId(2L)).willReturn(0L) // No other books use this translator
+        given(illustratorRepository.countBooksByIllustratorId(3L)).willReturn(0L) // No other books use this illustrator
+
         // When
         bookService.deleteBook(1L)
 
         // Then
+        then(bookRepository).should().findById(1L)
         then(bookRepository).should().deleteById(1L)
+        then(authorRepository).should().countBooksByAuthorId(1L)
+        then(authorRepository).should().deleteById(1L)
+        then(translatorRepository).should().countBooksByTranslatorId(2L)
+        then(translatorRepository).should().deleteById(2L)
+        then(illustratorRepository).should().countBooksByIllustratorId(3L)
+        then(illustratorRepository).should().deleteById(3L)
+    }
+
+    @Test
+    fun `should not delete entities when still used by other books during deletion`() {
+        // Given
+        given(bookRepository.findById(1L)).willReturn(Optional.of(testBook))
+        given(authorRepository.countBooksByAuthorId(1L)).willReturn(1L) // Still used by other books
+        given(translatorRepository.countBooksByTranslatorId(2L)).willReturn(1L) // Still used by other books
+        given(illustratorRepository.countBooksByIllustratorId(3L)).willReturn(1L) // Still used by other books
+
+        // When
+        bookService.deleteBook(1L)
+
+        // Then
+        then(bookRepository).should().findById(1L)
+        then(bookRepository).should().deleteById(1L)
+        then(authorRepository).should().countBooksByAuthorId(1L)
+        then(authorRepository).should(never()).deleteById(1L)
+        then(translatorRepository).should().countBooksByTranslatorId(2L)
+        then(translatorRepository).should(never()).deleteById(2L)
+        then(illustratorRepository).should().countBooksByIllustratorId(3L)
+        then(illustratorRepository).should(never()).deleteById(3L)
     }
 
     @Test
@@ -272,14 +386,11 @@ class BookServiceTest {
         )
 
         val createRequestWithoutRelations = testBookCreateRequest.copy(
-            authorIds = emptyList(),
-            translatorIds = emptyList(),
-            illustratorIds = emptyList()
+            authorNames = emptyList(),
+            translatorNames = emptyList(),
+            illustratorNames = emptyList()
         )
 
-        given(authorRepository.findAllById(emptyList())).willReturn(emptyList())
-        given(translatorRepository.findAllById(emptyList())).willReturn(emptyList())
-        given(illustratorRepository.findAllById(emptyList())).willReturn(emptyList())
         given(bookRepository.save(any(Book::class.java))).willReturn(bookWithoutRelations)
 
         // When
@@ -289,27 +400,32 @@ class BookServiceTest {
         assertThat(result.authors).isEmpty()
         assertThat(result.translators).isEmpty()
         assertThat(result.illustrators).isEmpty()
-        then(authorRepository).should().findAllById(emptyList())
-        then(translatorRepository).should().findAllById(emptyList())
-        then(illustratorRepository).should().findAllById(emptyList())
         then(bookRepository).should().save(any(Book::class.java))
     }
 
     @Test
-    fun `should handle multiple missing entities of same type`() {
+    fun `should handle multiple authors with some existing and some new`() {
         // Given
+        val existingAuthor = testAuthor
+        val newAuthor = Author(id = 2L, name = "New Author")
         val createRequestWithMultipleAuthors = testBookCreateRequest.copy(
-            authorIds = listOf(1L, 2L, 3L)
+            authorNames = listOf("Test Author", "New Author")
         )
-        given(authorRepository.findAllById(createRequestWithMultipleAuthors.authorIds)).willReturn(listOf(testAuthor)) // Only author-1 found
+        
+        given(authorRepository.findByName("Test Author")).willReturn(Optional.of(existingAuthor))
+        given(authorRepository.findByName("New Author")).willReturn(Optional.empty())
+        given(authorRepository.save(any(Author::class.java))).willReturn(newAuthor)
+        given(translatorRepository.findByName("Test Translator")).willReturn(Optional.of(testTranslator))
+        given(illustratorRepository.findByName("Test Illustrator")).willReturn(Optional.of(testIllustrator))
+        given(bookRepository.save(any(Book::class.java))).willReturn(testBook)
 
-        // When & Then
-        val exception = assertThrows<EntityNotFoundException> {
-            bookService.createBook(createRequestWithMultipleAuthors)
-        }
+        // When
+        bookService.createBook(createRequestWithMultipleAuthors)
 
-        assertThat(exception.errorCode).isEqualTo(ErrorCode.AUTHOR_NOT_FOUND)
-        assertThat(exception.entityType).isEqualTo("Author")
-        assertThat(exception.missingIds).containsExactlyInAnyOrder("2", "3")
+        // Then
+        then(authorRepository).should().findByName("Test Author")
+        then(authorRepository).should().findByName("New Author")
+        then(authorRepository).should().save(any(Author::class.java))
+        then(bookRepository).should().save(any(Book::class.java))
     }
 }

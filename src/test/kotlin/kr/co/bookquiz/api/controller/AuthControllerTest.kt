@@ -156,6 +156,79 @@ class AuthControllerTest {
     }
 
     @Test
+    fun `should return detailed validation errors for login with empty username`() {
+        // Given
+        val invalidLoginRequest = LoginRequest(
+            username = "", // Empty username
+            password = "password123"
+        )
+
+        // When & Then
+        mockMvc.perform(
+            post("/api/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(invalidLoginRequest))
+        )
+            .andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.detail").value("Validation failed"))
+            .andExpect(jsonPath("$.title").value("Validation Error"))
+            .andExpect(jsonPath("$.errorCode").value("E1004"))
+            .andExpect(jsonPath("$.fieldErrors.username").isArray)
+            .andExpect(jsonPath("$.fieldErrors.username[0]").value("Username is required"))
+
+        verifyNoInteractions(authService)
+    }
+
+    @Test
+    fun `should return detailed validation errors for login with multiple invalid fields`() {
+        // Given
+        val invalidLoginRequest = LoginRequest(
+            username = "", // Empty username
+            password = ""  // Empty password
+        )
+
+        // When & Then
+        mockMvc.perform(
+            post("/api/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(invalidLoginRequest))
+        )
+            .andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.detail").value("Validation failed"))
+            .andExpect(jsonPath("$.title").value("Validation Error"))
+            .andExpect(jsonPath("$.errorCode").value("E1004"))
+            .andExpect(jsonPath("$.fieldErrors.username").isArray)
+            .andExpect(jsonPath("$.fieldErrors.username[0]").value("Username is required"))
+            .andExpect(jsonPath("$.fieldErrors.password").isArray)
+            .andExpect(jsonPath("$.fieldErrors.password[0]").value("Password is required"))
+
+        verifyNoInteractions(authService)
+    }
+
+    @Test
+    fun `should return detailed validation errors for refresh token with empty token`() {
+        // Given
+        val invalidRefreshTokenRequest = RefreshTokenRequest(
+            refreshToken = "" // Empty refresh token
+        )
+
+        // When & Then
+        mockMvc.perform(
+            post("/api/auth/refresh")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(invalidRefreshTokenRequest))
+        )
+            .andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.detail").value("Validation failed"))
+            .andExpect(jsonPath("$.title").value("Validation Error"))
+            .andExpect(jsonPath("$.errorCode").value("E1004"))
+            .andExpect(jsonPath("$.fieldErrors.refreshToken").isArray)
+            .andExpect(jsonPath("$.fieldErrors.refreshToken[0]").value("Refresh token is required"))
+
+        verifyNoInteractions(authService)
+    }
+
+    @Test
     fun `should refresh token successfully`() {
         // Given
         val refreshTokenRequest = RefreshTokenRequest("valid-refresh-token")
@@ -272,6 +345,113 @@ class AuthControllerTest {
         )
             .andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.title").value("Validation Error"))
+
+        verifyNoInteractions(signupService)
+    }
+
+    @Test
+    fun `should return detailed validation errors for signup with invalid username`() {
+        // Given
+        val invalidSignupRequest = validSignupRequest.copy(
+            username = "ab" // Too short (minimum 3 characters)
+        )
+
+        // When & Then
+        mockMvc.perform(
+            post("/api/auth/signup")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(invalidSignupRequest))
+        )
+            .andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.detail").value("Validation failed"))
+            .andExpect(jsonPath("$.title").value("Validation Error"))
+            .andExpect(jsonPath("$.errorCode").value("E1004"))
+            .andExpect(jsonPath("$.fieldErrors.username").isArray)
+            .andExpect(jsonPath("$.fieldErrors.username[0]").value("Username must be between 3 and 50 characters"))
+
+        verifyNoInteractions(signupService)
+    }
+
+    @Test
+    fun `should return detailed validation errors for signup with invalid email`() {
+        // Given
+        val invalidSignupRequest = validSignupRequest.copy(
+            email = "invalid-email" // Invalid email format
+        )
+
+        // When & Then
+        mockMvc.perform(
+            post("/api/auth/signup")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(invalidSignupRequest))
+        )
+            .andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.detail").value("Validation failed"))
+            .andExpect(jsonPath("$.title").value("Validation Error"))
+            .andExpect(jsonPath("$.errorCode").value("E1004"))
+            .andExpect(jsonPath("$.fieldErrors.email").isArray)
+            .andExpect(jsonPath("$.fieldErrors.email[0]").value("Email should be valid"))
+
+        verifyNoInteractions(signupService)
+    }
+
+    @Test
+    fun `should return detailed validation errors for signup with weak password`() {
+        // Given
+        val invalidSignupRequest = validSignupRequest.copy(
+            password = "weak", // Too weak password
+            confirmPassword = "weak"
+        )
+
+        // When & Then
+        mockMvc.perform(
+            post("/api/auth/signup")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(invalidSignupRequest))
+        )
+            .andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.detail").value("Validation failed"))
+            .andExpect(jsonPath("$.title").value("Validation Error"))
+            .andExpect(jsonPath("$.errorCode").value("E1004"))
+            .andExpect(jsonPath("$.fieldErrors.password").isArray)
+            .andExpect(jsonPath("$.fieldErrors.password[0]").value("Password must contain at least one lowercase letter, one uppercase letter, one digit, and one special character"))
+            .andExpect(jsonPath("$.fieldErrors.password[1]").value("Password must be at least 8 characters long"))
+
+        verifyNoInteractions(signupService)
+    }
+
+    @Test
+    fun `should return detailed validation errors for signup with multiple invalid fields`() {
+        // Given
+        val invalidSignupRequest = validSignupRequest.copy(
+            username = "", // Empty username
+            name = "", // Empty name
+            email = "invalid-email", // Invalid email
+            password = "weak", // Weak password
+            confirmPassword = "weak",
+            phoneNumber = "invalid-phone" // Invalid phone number
+        )
+
+        // When & Then
+        mockMvc.perform(
+            post("/api/auth/signup")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(invalidSignupRequest))
+        )
+            .andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.detail").value("Validation failed"))
+            .andExpect(jsonPath("$.title").value("Validation Error"))
+            .andExpect(jsonPath("$.errorCode").value("E1004"))
+            .andExpect(jsonPath("$.fieldErrors.username").isArray)
+            .andExpect(jsonPath("$.fieldErrors.username[*]").value(org.hamcrest.Matchers.hasItem("Username is required")))
+            .andExpect(jsonPath("$.fieldErrors.name").isArray)
+            .andExpect(jsonPath("$.fieldErrors.name[*]").value(org.hamcrest.Matchers.hasItem("Name is required")))
+            .andExpect(jsonPath("$.fieldErrors.email").isArray)
+            .andExpect(jsonPath("$.fieldErrors.email[*]").value(org.hamcrest.Matchers.hasItem("Email should be valid")))
+            .andExpect(jsonPath("$.fieldErrors.password").isArray)
+            .andExpect(jsonPath("$.fieldErrors.password[*]").value(org.hamcrest.Matchers.hasItem("Password must be at least 8 characters long")))
+            .andExpect(jsonPath("$.fieldErrors.phoneNumber").isArray)
+            .andExpect(jsonPath("$.fieldErrors.phoneNumber[*]").value(org.hamcrest.Matchers.hasItem("Phone number must be in E.164 format (e.g., +82101234567)")))
 
         verifyNoInteractions(signupService)
     }

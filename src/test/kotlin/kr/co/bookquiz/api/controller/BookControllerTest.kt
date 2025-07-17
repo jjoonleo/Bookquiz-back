@@ -72,9 +72,9 @@ class BookControllerTest {
             publisher = "Test Publisher",
             quizPrice = 1000,
             thumbnail = "https://example.com/thumbnail.jpg",
-            authorIds = listOf(1L),
-            translatorIds = listOf(2L),
-            illustratorIds = listOf(3L)
+            authorNames = listOf("Test Author"),
+            translatorNames = listOf("Test Translator"),
+            illustratorNames = listOf("Test Illustrator")
         )
 
         testBookUpdateRequest = BookUpdateRequest(
@@ -83,9 +83,9 @@ class BookControllerTest {
             publisher = "Test Publisher",
             quizPrice = 1000,
             thumbnail = "https://example.com/thumbnail.jpg",
-            authorIds = listOf(1L),
-            translatorIds = listOf(2L),
-            illustratorIds = listOf(3L)
+            authorNames = listOf("Test Author"),
+            translatorNames = listOf("Test Translator"),
+            illustratorNames = listOf("Test Illustrator")
         )
     }
 
@@ -98,7 +98,7 @@ class BookControllerTest {
 
         // When & Then
         mockMvc.perform(
-            post("/books")
+            post("/api/books")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(testBookCreateRequest))
                 .with(csrf())
@@ -124,7 +124,7 @@ class BookControllerTest {
         given(bookService.getBookById(1L)).willReturn(testBookResponse)
 
         // When & Then
-        mockMvc.perform(get("/books/1"))
+        mockMvc.perform(get("/api/books/1"))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.success").value(true))
             .andExpect(jsonPath("$.message").value("Book retrieved successfully"))
@@ -144,7 +144,7 @@ class BookControllerTest {
             .willThrow(EntityNotFoundException("Book", listOf("999"), ErrorCode.BOOK_NOT_FOUND))
 
         // When & Then
-        mockMvc.perform(get("/books/999"))
+        mockMvc.perform(get("/api/books/999"))
             .andExpect(status().isNotFound)
             .andExpect(jsonPath("$.title").value("Entity Not Found"))
             .andExpect(jsonPath("$.detail").value("Book not found: 999"))
@@ -163,7 +163,7 @@ class BookControllerTest {
 
         // When & Then
         mockMvc.perform(
-            put("/books/1")
+            put("/api/books/1")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(testBookUpdateRequest))
                 .with(csrf())
@@ -180,7 +180,7 @@ class BookControllerTest {
     @WithMockUser
     fun `should delete book successfully`() {
         // When & Then
-        mockMvc.perform(delete("/books/1").with(csrf()))
+        mockMvc.perform(delete("/api/books/1").with(csrf()))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.success").value(true))
             .andExpect(jsonPath("$.message").value("Book deleted successfully"))
@@ -196,12 +196,66 @@ class BookControllerTest {
 
         // When & Then
         mockMvc.perform(
-            post("/books")
+            post("/api/books")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(invalidBookRequest))
                 .with(csrf())
         )
             .andExpect(status().isBadRequest) // Validation error should return 400
+
+        verifyNoInteractions(bookService)
+    }
+
+    @Test
+    @WithMockUser
+    fun `should return detailed validation errors when authorNames is empty`() {
+        // Given
+        val invalidBookRequest = testBookCreateRequest.copy(authorNames = emptyList())
+
+        // When & Then
+        mockMvc.perform(
+            post("/api/books")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(invalidBookRequest))
+                .with(csrf())
+        )
+            .andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.detail").value("Validation failed"))
+            .andExpect(jsonPath("$.title").value("Validation Error"))
+            .andExpect(jsonPath("$.errorCode").value("E1004"))
+            .andExpect(jsonPath("$.fieldErrors.authorNames").isArray)
+            .andExpect(jsonPath("$.fieldErrors.authorNames[0]").value("At least one author is required"))
+
+        verifyNoInteractions(bookService)
+    }
+
+    @Test
+    @WithMockUser
+    fun `should return detailed validation errors for multiple fields`() {
+        // Given
+        val invalidBookRequest = testBookCreateRequest.copy(
+            title = "",
+            isbn = "",
+            authorNames = emptyList()
+        )
+
+        // When & Then
+        mockMvc.perform(
+            post("/api/books")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(invalidBookRequest))
+                .with(csrf())
+        )
+            .andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.detail").value("Validation failed"))
+            .andExpect(jsonPath("$.title").value("Validation Error"))
+            .andExpect(jsonPath("$.errorCode").value("E1004"))
+            .andExpect(jsonPath("$.fieldErrors.title").isArray)
+            .andExpect(jsonPath("$.fieldErrors.title[0]").value("Title is required"))
+            .andExpect(jsonPath("$.fieldErrors.isbn").isArray)
+            .andExpect(jsonPath("$.fieldErrors.isbn[0]").value("ISBN is required"))
+            .andExpect(jsonPath("$.fieldErrors.authorNames").isArray)
+            .andExpect(jsonPath("$.fieldErrors.authorNames[0]").value("At least one author is required"))
 
         verifyNoInteractions(bookService)
     }
