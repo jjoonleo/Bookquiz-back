@@ -32,6 +32,17 @@ class GlobalExceptionHandler {
         }
     }
 
+    @ExceptionHandler(EntityNotFoundException::class)
+    fun handleEntityNotFoundException(e: EntityNotFoundException): ProblemDetail {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, e.message ?: "").apply {
+            title = "Entity Not Found"
+            type = URI.create("https://example.com/errors/${e.errorCode.name.lowercase()}")
+            setProperty("errorCode", e.errorCode.code)
+            setProperty("entityType", e.entityType)
+            setProperty("missingIds", e.missingIds)
+        }
+    }
+
     @ExceptionHandler(BadCredentialsException::class)
     fun handleBadCredentialsException(e: BadCredentialsException): ProblemDetail {
         return ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, ErrorCode.INVALID_CREDENTIALS.defaultMessage).apply {

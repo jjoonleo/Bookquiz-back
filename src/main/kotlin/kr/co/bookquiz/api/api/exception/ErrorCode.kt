@@ -13,5 +13,9 @@ enum class ErrorCode(val code: String, val defaultMessage: String) {
     PASSWORD_MISMATCH("E1010", "Password and confirm password do not match"),
     WEAK_PASSWORD("E1011", "Password does not meet security requirements"),
     PHONE_NUMBER_DUPLICATE("E1012", "Phone number already exists"),
+    AUTHOR_NOT_FOUND("E1013", "Author not found"),
+    TRANSLATOR_NOT_FOUND("E1014", "Translator not found"),
+    ILLUSTRATOR_NOT_FOUND("E1015", "Illustrator not found"),
+    BOOK_NOT_FOUND("E1016", "Book not found"),
     INTERNAL_ERROR("E9999", "Internal server error")
 }

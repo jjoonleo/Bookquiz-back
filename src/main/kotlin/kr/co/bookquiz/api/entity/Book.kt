@@ -10,9 +10,7 @@ import jakarta.persistence.JoinTable
 import jakarta.persistence.ManyToMany
 import jakarta.persistence.Table
 import java.time.LocalDateTime
-import com.sun.java.accessibility.util.Translator
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import kr.co.bookquiz.api.entity.Author
 
 @Entity
 @Table(name = "books")
