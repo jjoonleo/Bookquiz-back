@@ -70,22 +70,12 @@ data class BookResponse(
     val publisher: String,
     val quizPrice: Int,
     val thumbnail: String?,
-    val authors: List<AuthorResponse>,
-    val translators: List<TranslatorResponse>,
-    val illustrators: List<IllustratorResponse>
+    val authors: List<PersonResponse>,
+    val translators: List<PersonResponse>,
+    val illustrators: List<PersonResponse>
 )
 
-data class AuthorResponse(
-    val id: Long?,
-    val name: String
-)
-
-data class TranslatorResponse(
-    val id: Long?,
-    val name: String
-)
-
-data class IllustratorResponse(
+data class PersonResponse(
     val id: Long?,
     val name: String
 )

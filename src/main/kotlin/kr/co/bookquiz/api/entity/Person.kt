@@ -9,14 +9,14 @@ import jakarta.persistence.Id
 import jakarta.persistence.Table
 
 @Entity
-@Table(name = "author")
+@Table(name = "persons")
 @JsonIgnoreProperties("hibernateLazyInitializer", "handler")
-data class Author(
+data class Person(
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long? = null,
 
-    @Column(unique = true, nullable = false)
+    @Column(unique = true, nullable = false, length = 255)
     val name: String
 )

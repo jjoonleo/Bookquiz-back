@@ -1,9 +1,7 @@
 package kr.co.bookquiz.api.dto.book
 
-import kr.co.bookquiz.api.entity.Author
 import kr.co.bookquiz.api.entity.Book
-import kr.co.bookquiz.api.entity.Illustrator
-import kr.co.bookquiz.api.entity.Translator
+import kr.co.bookquiz.api.entity.Person
 
 // Extension functions for converting DTOs to entities
 fun BookCreateRequest.toEntity(): Book {
@@ -43,22 +41,8 @@ fun Book.toResponse(): BookResponse {
     )
 }
 
-fun Author.toResponse(): AuthorResponse {
-    return AuthorResponse(
-        id = this.id,
-        name = this.name
-    )
-}
-
-fun Translator.toResponse(): TranslatorResponse {
-    return TranslatorResponse(
-        id = this.id,
-        name = this.name
-    )
-}
-
-fun Illustrator.toResponse(): IllustratorResponse {
-    return IllustratorResponse(
+fun Person.toResponse(): PersonResponse {
+    return PersonResponse(
         id = this.id,
         name = this.name
     )

@@ -39,23 +39,23 @@ data class Book(
     @JoinTable(
         name = "book_author",
         joinColumns = [JoinColumn(name = "book_id")],
-        inverseJoinColumns = [JoinColumn(name = "author_id")]
+        inverseJoinColumns = [JoinColumn(name = "person_id")]
     )
-    val authors: List<Author> = mutableListOf(),
+    val authors: List<Person> = mutableListOf(),
 
     @ManyToMany
     @JoinTable(
         name = "book_translator",
         joinColumns = [JoinColumn(name = "book_id")],
-        inverseJoinColumns = [JoinColumn(name = "translator_id")]
+        inverseJoinColumns = [JoinColumn(name = "person_id")]
     )
-    val translators: List<Translator> = mutableListOf(),
+    val translators: List<Person> = mutableListOf(),
 
     @ManyToMany
     @JoinTable(
         name = "book_illustrator",
         joinColumns = [JoinColumn(name = "book_id")],
-        inverseJoinColumns = [JoinColumn(name = "illustrator_id")]
+        inverseJoinColumns = [JoinColumn(name = "person_id")]
     )
-    val illustrators: List<Illustrator> = mutableListOf()
+    val illustrators: List<Person> = mutableListOf()
 )
