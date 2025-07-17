@@ -232,26 +232,6 @@ class BookRepositoryTest {
     }
 
     @Test
-    fun `should verify auto-generated ID is Long type`() {
-        // Given
-        val book = Book(
-            title = "ID Type Test",
-            isbn = "9780123456796",
-            publisher = "ID Publisher",
-            quizPrice = 1000,
-            thumbnail = "https://example.com/id.jpg"
-        )
-
-        // When
-        val savedBook = bookRepository.save(book)
-
-        // Then
-        assertThat(savedBook.id).isNotNull
-        assertThat(savedBook.id).isInstanceOf(Long::class.java)
-        assertThat(savedBook.id).isGreaterThan(0L)
-    }
-
-    @Test
     fun `should save multiple books with sequential IDs`() {
         // Given
         val book1 = Book(
@@ -344,38 +324,5 @@ class BookRepositoryTest {
         assertThat(retrievedBook.translators.map { it.name }).containsExactlyInAnyOrder("First Translator", "Second Translator")
         assertThat(retrievedBook.illustrators).hasSize(2)
         assertThat(retrievedBook.illustrators.map { it.name }).containsExactlyInAnyOrder("First Illustrator", "Second Illustrator")
-    }
-
-    @Test
-    fun `should verify ID generation strategy works correctly`() {
-        // Given
-        val books = (1..5).map { index ->
-            Book(
-                title = "Strategy Test Book $index",
-                isbn = "978012345680$index",
-                publisher = "Strategy Publisher",
-                quizPrice = 1000 + index * 100,
-                thumbnail = "https://example.com/strategy$index.jpg"
-            )
-        }
-
-        // When
-        val savedBooks = books.map { bookRepository.save(it) }
-
-        // Then
-        savedBooks.forEach { book ->
-            assertThat(book.id).isNotNull
-            assertThat(book.id).isInstanceOf(Long::class.java)
-        }
-        
-        // Verify IDs are sequential
-        val ids = savedBooks.map { it.id!! }.sorted()
-        for (i in 1 until ids.size) {
-            assertThat(ids[i]).isGreaterThan(ids[i - 1])
-        }
-        
-        // Verify all books can be found
-        val allFoundBooks = bookRepository.findAll()
-        assertThat(allFoundBooks).hasSizeGreaterThanOrEqualTo(5)
     }
 }
