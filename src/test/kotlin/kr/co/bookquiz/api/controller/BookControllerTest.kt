@@ -3,12 +3,10 @@ package kr.co.bookquiz.api.controller
 import com.fasterxml.jackson.databind.ObjectMapper
 import kr.co.bookquiz.api.api.exception.EntityNotFoundException
 import kr.co.bookquiz.api.api.exception.ErrorCode
-import kr.co.bookquiz.api.dto.book.AuthorResponse
+import kr.co.bookquiz.api.dto.book.PersonResponse
 import kr.co.bookquiz.api.dto.book.BookCreateRequest
 import kr.co.bookquiz.api.dto.book.BookResponse
 import kr.co.bookquiz.api.dto.book.BookUpdateRequest
-import kr.co.bookquiz.api.dto.book.IllustratorResponse
-import kr.co.bookquiz.api.dto.book.TranslatorResponse
 import kr.co.bookquiz.api.security.JwtUtil
 import kr.co.bookquiz.api.service.BookService
 import org.junit.jupiter.api.BeforeEach
@@ -44,15 +42,15 @@ class BookControllerTest {
     private lateinit var testBookResponse: BookResponse
     private lateinit var testBookCreateRequest: BookCreateRequest
     private lateinit var testBookUpdateRequest: BookUpdateRequest
-    private lateinit var testAuthorResponse: AuthorResponse
-    private lateinit var testTranslatorResponse: TranslatorResponse
-    private lateinit var testIllustratorResponse: IllustratorResponse
+    private lateinit var testAuthorResponse: PersonResponse
+    private lateinit var testTranslatorResponse: PersonResponse
+    private lateinit var testIllustratorResponse: PersonResponse
 
     @BeforeEach
     fun setUp() {
-        testAuthorResponse = AuthorResponse(id = 1L, name = "Test Author")
-        testTranslatorResponse = TranslatorResponse(id = 2L, name = "Test Translator")
-        testIllustratorResponse = IllustratorResponse(id = 3L, name = "Test Illustrator")
+        testAuthorResponse = PersonResponse(id = 1L, name = "Test Author")
+        testTranslatorResponse = PersonResponse(id = 2L, name = "Test Translator")
+        testIllustratorResponse = PersonResponse(id = 3L, name = "Test Illustrator")
 
         testBookResponse = BookResponse(
             id = 1L,

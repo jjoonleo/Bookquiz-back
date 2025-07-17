@@ -10,6 +10,7 @@ import kr.co.bookquiz.api.entity.Province
 import kr.co.bookquiz.api.security.JwtUtil
 import kr.co.bookquiz.api.service.AuthService
 import kr.co.bookquiz.api.service.SignupService
+import org.hamcrest.Matchers.containsInAnyOrder
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.BDDMockito.given
@@ -414,8 +415,10 @@ class AuthControllerTest {
             .andExpect(jsonPath("$.title").value("Validation Error"))
             .andExpect(jsonPath("$.errorCode").value("E1004"))
             .andExpect(jsonPath("$.fieldErrors.password").isArray)
-            .andExpect(jsonPath("$.fieldErrors.password[0]").value("Password must contain at least one lowercase letter, one uppercase letter, one digit, and one special character"))
-            .andExpect(jsonPath("$.fieldErrors.password[1]").value("Password must be at least 8 characters long"))
+            .andExpect(jsonPath("$.fieldErrors.password", containsInAnyOrder(
+                "Password must contain at least one lowercase letter, one uppercase letter, one digit, and one special character",
+                "Password must be at least 8 characters long"
+            )))
 
         verifyNoInteractions(signupService)
     }

@@ -1,10 +1,8 @@
 package kr.co.bookquiz.api.repository
 
 import kr.co.bookquiz.api.TestcontainersConfiguration
-import kr.co.bookquiz.api.entity.Author
 import kr.co.bookquiz.api.entity.Book
-import kr.co.bookquiz.api.entity.Illustrator
-import kr.co.bookquiz.api.entity.Translator
+import kr.co.bookquiz.api.entity.Person
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -94,9 +92,9 @@ class BookRepositoryTest {
     @Test
     fun `should save book with authors, translators, and illustrators`() {
         // Given
-        val author = Author(name = "Test Author")
-        val translator = Translator(name = "Test Translator")
-        val illustrator = Illustrator(name = "Test Illustrator")
+        val author = Person(name = "Test Author")
+        val translator = Person(name = "Test Translator")
+        val illustrator = Person(name = "Test Illustrator")
         
         val savedAuthor = testEntityManager.persistAndFlush(author)
         val savedTranslator = testEntityManager.persistAndFlush(translator)
@@ -263,8 +261,8 @@ class BookRepositoryTest {
     @Test
     fun `should handle book with multiple authors`() {
         // Given
-        val author1 = Author(name = "First Author")
-        val author2 = Author(name = "Second Author")
+        val author1 = Person(name = "First Author")
+        val author2 = Person(name = "Second Author")
         val savedAuthor1 = testEntityManager.persistAndFlush(author1)
         val savedAuthor2 = testEntityManager.persistAndFlush(author2)
         
@@ -291,10 +289,10 @@ class BookRepositoryTest {
     @Test
     fun `should handle book with multiple translators and illustrators`() {
         // Given
-        val translator1 = Translator(name = "First Translator")
-        val translator2 = Translator(name = "Second Translator")
-        val illustrator1 = Illustrator(name = "First Illustrator")
-        val illustrator2 = Illustrator(name = "Second Illustrator")
+        val translator1 = Person(name = "First Translator")
+        val translator2 = Person(name = "Second Translator")
+        val illustrator1 = Person(name = "First Illustrator")
+        val illustrator2 = Person(name = "Second Illustrator")
         
         val savedTranslator1 = testEntityManager.persistAndFlush(translator1)
         val savedTranslator2 = testEntityManager.persistAndFlush(translator2)
