@@ -1,5 +1,6 @@
 package kr.co.bookquiz.api.api.exception
 
+import jakarta.validation.ConstraintViolationException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ProblemDetail
 import org.springframework.security.authentication.BadCredentialsException
@@ -63,10 +64,15 @@ class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException::class)
     fun handleValidationException(e: MethodArgumentNotValidException): ProblemDetail {
-        val errors = e.bindingResult.allErrors.map { error ->
+        val fieldErrors = mutableMapOf<String, List<String>>()
+        
+        e.bindingResult.allErrors.forEach { error ->
             when (error) {
-                is FieldError -> "${error.field}: ${error.defaultMessage}"
-                else -> error.defaultMessage ?: "Validation error"
+                is FieldError -> {
+                    val fieldName = error.field
+                    val errorMessage = error.defaultMessage ?: "Invalid value"
+                    fieldErrors[fieldName] = fieldErrors.getOrDefault(fieldName, emptyList()) + errorMessage
+                }
             }
         }
 
@@ -74,7 +80,25 @@ class GlobalExceptionHandler {
             title = "Validation Error"
             type = URI.create("https://example.com/errors/validation")
             setProperty("errorCode", ErrorCode.INVALID_REQUEST.code)
-            setProperty("validationErrors", errors)
+            setProperty("fieldErrors", fieldErrors)
+        }
+    }
+
+    @ExceptionHandler(ConstraintViolationException::class)
+    fun handleConstraintViolationException(e: ConstraintViolationException): ProblemDetail {
+        val fieldErrors = mutableMapOf<String, List<String>>()
+        
+        e.constraintViolations.forEach { violation ->
+            val fieldName = violation.propertyPath.toString()
+            val errorMessage = violation.message
+            fieldErrors[fieldName] = fieldErrors.getOrDefault(fieldName, emptyList()) + errorMessage
+        }
+
+        return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Validation failed").apply {
+            title = "Validation Error"
+            type = URI.create("https://example.com/errors/validation")
+            setProperty("errorCode", ErrorCode.INVALID_REQUEST.code)
+            setProperty("fieldErrors", fieldErrors)
         }
     }
 

@@ -25,9 +25,13 @@ data class BookCreateRequest(
     @field:Size(max = 1000, message = "Thumbnail URL must not exceed 1000 characters")
     val thumbnail: String? = null,
 
-    val authorIds: List<Long> = emptyList(),
-    val translatorIds: List<Long> = emptyList(),
-    val illustratorIds: List<Long> = emptyList()
+    @field:NotNull(message = "Authors are required")
+    @field:Size(min = 1, message = "At least one author is required")
+    val authorNames: List<@NotBlank(message = "Author name cannot be blank") String> = emptyList(),
+
+    val translatorNames: List<@NotBlank(message = "Translator name cannot be blank") String> = emptyList(),
+
+    val illustratorNames: List<@NotBlank(message = "Illustrator name cannot be blank") String> = emptyList()
 )
 
 data class BookUpdateRequest(
@@ -50,9 +54,13 @@ data class BookUpdateRequest(
     @field:Size(max = 1000, message = "Thumbnail URL must not exceed 1000 characters")
     val thumbnail: String? = null,
 
-    val authorIds: List<Long> = emptyList(),
-    val translatorIds: List<Long> = emptyList(),
-    val illustratorIds: List<Long> = emptyList()
+    @field:NotNull(message = "Authors are required")
+    @field:Size(min = 1, message = "At least one author is required")
+    val authorNames: List<@NotBlank(message = "Author name cannot be blank") String> = emptyList(),
+    
+    val translatorNames: List<@NotBlank(message = "Translator name cannot be blank") String> = emptyList(),
+    
+    val illustratorNames: List<@NotBlank(message = "Illustrator name cannot be blank") String> = emptyList()
 )
 
 data class BookResponse(
