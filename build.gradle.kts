@@ -65,6 +65,20 @@ allOpen {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+    
+    // Configure Mockito to use static agent loading instead of dynamic loading
+    systemProperty("mockito.mock.maker", "org.mockito.internal.creation.bytebuddy.InlineByteBuddyMockMaker")
+    
+    // Configure Mockito as a Java agent to avoid dynamic loading
+    doFirst {
+        val mockitoCoreJar = configurations.testRuntimeClasspath.get().files
+            .find { it.name.contains("mockito-core") }
+            ?.absolutePath
+        
+        if (mockitoCoreJar != null) {
+            jvmArgs("-javaagent:$mockitoCoreJar")
+        }
+    }
 }
 val installLocalGitHook = tasks.register<Copy>("installLocalGitHook") {
     from("${rootProject.rootDir}/src/main/resources/git-hooks/pre-commit")
