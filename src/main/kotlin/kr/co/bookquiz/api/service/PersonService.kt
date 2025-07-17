@@ -3,8 +3,10 @@ package kr.co.bookquiz.api.service
 import kr.co.bookquiz.api.entity.Person
 import kr.co.bookquiz.api.repository.PersonRepository
 import org.springframework.stereotype.Service
+import jakarta.transaction.Transactional
 
 @Service
+@Transactional
 class PersonService(
     private val personRepository: PersonRepository
 ) {
