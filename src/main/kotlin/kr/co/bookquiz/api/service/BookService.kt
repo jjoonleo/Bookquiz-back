@@ -10,6 +10,7 @@ import kr.co.bookquiz.api.dto.book.toResponse
 import kr.co.bookquiz.api.entity.Book
 import kr.co.bookquiz.api.repository.BookRepository
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 
 @Service
 class BookService(
@@ -17,11 +18,13 @@ class BookService(
     private val personService: PersonService
 ) {
 
+    @Transactional(readOnly = true)
     fun getAllBooks(): List<BookResponse> {
         val books = bookRepository.findAll()
         return books.map { it.toResponse() }
     }
 
+    @Transactional
     fun createBook(bookCreateRequest: BookCreateRequest): BookResponse {
         // Find or create authors, translators, and illustrators
         val authors = personService.findOrCreatePersons(bookCreateRequest.authorNames)
@@ -34,24 +37,27 @@ class BookService(
         return savedBook.toResponse()
     }
 
+    @Transactional(readOnly = true)
     fun getBookById(id: Long): BookResponse {
         val book = getBookEntityById(id)
         return book.toResponse()
     }
 
-    private fun getBookEntityById(id: Long): Book {
+    @Transactional(readOnly = true)
+    fun getBookEntityById(id: Long): Book {
         return bookRepository.findById(id).orElseThrow {
             EntityNotFoundException("Book", listOf(id.toString()), ErrorCode.BOOK_NOT_FOUND)
         }
     }
 
+    @Transactional
     fun updateBook(id: Long, bookUpdateRequest: BookUpdateRequest): BookResponse {
         val existingBook = getBookEntityById(id)
 
-        // Store old entities for cleanup
-        val oldAuthors = existingBook.authors
-        val oldTranslators = existingBook.translators
-        val oldIllustrators = existingBook.illustrators
+        // Store old entities for cleanup - session is active due to @Transactional
+        val oldAuthors = existingBook.authors.toList() // Force loading
+        val oldTranslators = existingBook.translators.toList()
+        val oldIllustrators = existingBook.illustrators.toList()
 
         // Find or create new authors, translators, and illustrators
         val authors = personService.findOrCreatePersons(bookUpdateRequest.authorNames)
@@ -70,7 +76,7 @@ class BookService(
         )
         val savedBook = bookRepository.save(updatedBook)
 
-        // Clean up unused entities
+        // Clean up unused entities - collections are loaded
         personService.cleanupUnusedPersons(oldAuthors, authors)
         personService.cleanupUnusedPersons(oldTranslators, translators)
         personService.cleanupUnusedPersons(oldIllustrators, illustrators)
@@ -78,18 +84,19 @@ class BookService(
         return savedBook.toResponse()
     }
 
+    @Transactional
     fun deleteBook(id: Long) {
         val existingBook = getBookEntityById(id)
 
-        // Store entities for cleanup before deletion
-        val oldAuthors = existingBook.authors
-        val oldTranslators = existingBook.translators
-        val oldIllustrators = existingBook.illustrators
+        // Force initialization of lazy collections - session is active due to @Transactional
+        val oldAuthors = existingBook.authors.toList() // This triggers loading
+        val oldTranslators = existingBook.translators.toList()
+        val oldIllustrators = existingBook.illustrators.toList()
 
-        // Delete the book first
+        // Delete the book
         bookRepository.deleteById(id)
 
-        // Clean up unused entities (passing null as newEntities to delete all that are unused)
+        // Clean up unused entities - collections are now loaded
         personService.cleanupUnusedPersons(oldAuthors, null)
         personService.cleanupUnusedPersons(oldTranslators, null)
         personService.cleanupUnusedPersons(oldIllustrators, null)
