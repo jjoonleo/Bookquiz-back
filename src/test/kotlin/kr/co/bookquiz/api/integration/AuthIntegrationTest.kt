@@ -124,7 +124,7 @@ class AuthIntegrationTest {
 
         // Step 8: Test refresh token functionality
         val refreshTokenRequest = mapOf("refreshToken" to refreshToken)
-        
+
         mockMvc.perform(
             post("/api/auth/refresh")
                 .contentType(MediaType.APPLICATION_JSON)

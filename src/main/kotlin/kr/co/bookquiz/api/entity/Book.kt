@@ -1,5 +1,6 @@
 package kr.co.bookquiz.api.entity
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.GeneratedValue
@@ -9,8 +10,6 @@ import jakarta.persistence.JoinColumn
 import jakarta.persistence.JoinTable
 import jakarta.persistence.ManyToMany
 import jakarta.persistence.Table
-import java.time.LocalDateTime
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 
 @Entity
 @Table(name = "books")
@@ -18,8 +17,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 data class Book(
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    val id: String,
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    val id: Long? = null,
 
     @Column(nullable = false, length = 255)
     val title: String,

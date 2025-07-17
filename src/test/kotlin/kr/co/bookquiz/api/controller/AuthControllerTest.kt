@@ -1,11 +1,13 @@
 package kr.co.bookquiz.api.controller
 
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
+import com.fasterxml.jackson.databind.ObjectMapper
 import kr.co.bookquiz.api.api.exception.ApiException
 import kr.co.bookquiz.api.api.exception.ErrorCode
+import kr.co.bookquiz.api.config.TestSecurityConfig
 import kr.co.bookquiz.api.dto.auth.*
 import kr.co.bookquiz.api.entity.Grade
 import kr.co.bookquiz.api.entity.Province
+import kr.co.bookquiz.api.security.JwtUtil
 import kr.co.bookquiz.api.service.AuthService
 import kr.co.bookquiz.api.service.SignupService
 import org.junit.jupiter.api.BeforeEach
@@ -14,21 +16,19 @@ import org.mockito.BDDMockito.given
 import org.mockito.BDDMockito.then
 import org.mockito.Mockito.*
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureWebMvc
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
-import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
 import org.springframework.security.test.context.support.WithMockUser
-import org.springframework.test.context.TestPropertySource
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import java.time.LocalDateTime
-import com.fasterxml.jackson.databind.ObjectMapper
-import kr.co.bookquiz.api.security.JwtUtil
 
 @WebMvcTest(AuthController::class)
+@Import(TestSecurityConfig::class)
 class AuthControllerTest {
     @Autowired lateinit var mockMvc: MockMvc
     @Autowired lateinit var objectMapper: ObjectMapper
@@ -92,13 +92,14 @@ class AuthControllerTest {
     @Test
     fun `should login successfully with valid credentials`() {
         // Given
-        given(authService.authenticateUser(any(LoginRequest::class.java))).willReturn(loginResponse)
+        given(authService.authenticateUser(validLoginRequest)).willReturn(loginResponse)
 
         // When & Then
         mockMvc.perform(
             post("/api/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(validLoginRequest))
+                .with(csrf())
         )
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.success").value(true))
@@ -118,7 +119,7 @@ class AuthControllerTest {
     @Test
     fun `should return 401 when login fails with invalid credentials`() {
         // Given
-        given(authService.authenticateUser(any(LoginRequest::class.java)))
+        given(authService.authenticateUser(validLoginRequest))
             .willThrow(ApiException(ErrorCode.INVALID_CREDENTIALS))
 
         // When & Then
@@ -217,7 +218,7 @@ class AuthControllerTest {
     @Test
     fun `should signup successfully with valid data`() {
         // Given
-        given(signupService.registerUser(any(SignupRequest::class.java))).willReturn(signupResponse)
+        given(signupService.registerUser(validSignupRequest)).willReturn(signupResponse)
 
         // When & Then
         mockMvc.perform(
@@ -238,7 +239,7 @@ class AuthControllerTest {
     @Test
     fun `should return 409 when signup with duplicate email`() {
         // Given
-        given(signupService.registerUser(any(SignupRequest::class.java)))
+        given(signupService.registerUser(validSignupRequest))
             .willThrow(ApiException(ErrorCode.EMAIL_DUPLICATE))
 
         // When & Then

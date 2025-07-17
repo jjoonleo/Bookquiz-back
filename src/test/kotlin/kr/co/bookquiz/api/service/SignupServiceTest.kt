@@ -9,6 +9,7 @@ import kr.co.bookquiz.api.entity.Province
 import kr.co.bookquiz.api.entity.User
 import kr.co.bookquiz.api.repository.AuthorityRepository
 import kr.co.bookquiz.api.repository.UserRepository
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -19,8 +20,6 @@ import org.mockito.Mockito.*
 import org.mockito.junit.jupiter.MockitoExtension
 import org.springframework.security.crypto.password.PasswordEncoder
 import java.time.LocalDateTime
-import org.assertj.core.api.Assertions.assertThat
-
 
 @ExtendWith(MockitoExtension::class)
 class SignupServiceTest {
@@ -69,7 +68,7 @@ class SignupServiceTest {
         given(userRepository.existsByPhoneNumberAndDeletedFalse("+82101234567")).willReturn(false)
         given(authorityRepository.findByName("ROLE_USER")).willReturn(defaultAuthority)
         given(passwordEncoder.encode("TestPassword123!")).willReturn("encodedPassword")
-        
+
         val savedUser = User(
             username = "testuser",
             name = "Test User",
@@ -88,7 +87,7 @@ class SignupServiceTest {
             updatedAt = LocalDateTime.now(),
             authorities = setOf(defaultAuthority)
         )
-        
+
         given(userRepository.save(any(User::class.java))).willReturn(savedUser)
 
         // When
@@ -180,7 +179,7 @@ class SignupServiceTest {
         given(authorityRepository.findByName("ROLE_USER")).willReturn(null)
         given(authorityRepository.save(any(Authority::class.java))).willReturn(defaultAuthority)
         given(passwordEncoder.encode("TestPassword123!")).willReturn("encodedPassword")
-        
+
         val savedUser = User(
             username = "testuser",
             name = "Test User",
@@ -199,7 +198,7 @@ class SignupServiceTest {
             updatedAt = LocalDateTime.now(),
             authorities = setOf(defaultAuthority)
         )
-        
+
         given(userRepository.save(any(User::class.java))).willReturn(savedUser)
 
         // When

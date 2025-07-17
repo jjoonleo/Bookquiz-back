@@ -1,9 +1,11 @@
 package kr.co.bookquiz.api.repository
 
+import kr.co.bookquiz.api.TestcontainersConfiguration
 import kr.co.bookquiz.api.entity.Authority
 import kr.co.bookquiz.api.entity.Grade
 import kr.co.bookquiz.api.entity.Province
 import kr.co.bookquiz.api.entity.User
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -13,9 +15,6 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager
 import org.springframework.context.annotation.Import
 import org.springframework.test.context.ActiveProfiles
 import java.time.LocalDateTime
-
-import kr.co.bookquiz.api.TestcontainersConfiguration
-import org.assertj.core.api.Assertions.assertThat
 
 @DataJpaTest
 @Import(TestcontainersConfiguration::class)
@@ -222,7 +221,7 @@ class UserRepositoryTest {
         var foundUser = userRepository.findByUsernameAndDeletedFalse("testuser")
         assertThat(foundUser).isNotNull
         foundUser!!.refreshToken = refreshToken
-        
+
         // Detach and reattach to avoid merge issues with collections
         testEntityManager.detach(foundUser)
         userRepository.save(foundUser)

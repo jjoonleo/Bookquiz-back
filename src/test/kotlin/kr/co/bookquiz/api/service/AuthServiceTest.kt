@@ -9,6 +9,7 @@ import kr.co.bookquiz.api.entity.Province
 import kr.co.bookquiz.api.entity.User
 import kr.co.bookquiz.api.repository.UserRepository
 import kr.co.bookquiz.api.security.JwtUtil
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -25,7 +26,6 @@ import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.userdetails.UserDetails
 import java.time.LocalDateTime
-import org.assertj.core.api.Assertions.assertThat
 
 @ExtendWith(MockitoExtension::class)
 class AuthServiceTest {
@@ -80,7 +80,7 @@ class AuthServiceTest {
             override fun isAccountNonExpired() = true
             override fun isAccountNonLocked() = true
             override fun isCredentialsNonExpired() = true
-            override fun getAuthorities(): Collection<GrantedAuthority> = 
+            override fun getAuthorities(): Collection<GrantedAuthority> =
                 listOf(SimpleGrantedAuthority("ROLE_USER"))
         }
 

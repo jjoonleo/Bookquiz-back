@@ -2,10 +2,12 @@ package kr.co.bookquiz.api.service
 
 import kr.co.bookquiz.api.api.exception.EntityNotFoundException
 import kr.co.bookquiz.api.api.exception.ErrorCode
-import kr.co.bookquiz.api.entity.Author
+import kr.co.bookquiz.api.dto.book.BookCreateRequest
+import kr.co.bookquiz.api.dto.book.BookResponse
+import kr.co.bookquiz.api.dto.book.BookUpdateRequest
+import kr.co.bookquiz.api.dto.book.toEntity
+import kr.co.bookquiz.api.dto.book.toResponse
 import kr.co.bookquiz.api.entity.Book
-import kr.co.bookquiz.api.entity.Illustrator
-import kr.co.bookquiz.api.entity.Translator
 import kr.co.bookquiz.api.repository.AuthorRepository
 import kr.co.bookquiz.api.repository.BookRepository
 import kr.co.bookquiz.api.repository.IllustratorRepository
@@ -21,82 +23,90 @@ class BookService(
     private val illustratorRepository: IllustratorRepository
 ) {
 
-    fun createBook(book: Book, authorIds: List<String>, translatorIds: List<String>, illustratorIds: List<String>): Book {
+    fun createBook(bookCreateRequest: BookCreateRequest): BookResponse {
         // Validate authors
-        val authors = authorRepository.findAllById(authorIds)
+        val authors = authorRepository.findAllById(bookCreateRequest.authorIds)
         val foundAuthorIds = authors.map { it.id }
-        val missingAuthorIds = authorIds.filter { it !in foundAuthorIds }
+        val missingAuthorIds = bookCreateRequest.authorIds.filter { it !in foundAuthorIds }
         if (missingAuthorIds.isNotEmpty()) {
-            throw EntityNotFoundException("Author", missingAuthorIds, ErrorCode.AUTHOR_NOT_FOUND)
+            throw EntityNotFoundException("Author", missingAuthorIds.map { it.toString() }, ErrorCode.AUTHOR_NOT_FOUND)
         }
 
         // Validate translators
-        val translators = translatorRepository.findAllById(translatorIds)
+        val translators = translatorRepository.findAllById(bookCreateRequest.translatorIds)
         val foundTranslatorIds = translators.map { it.id }
-        val missingTranslatorIds = translatorIds.filter { it !in foundTranslatorIds }
+        val missingTranslatorIds = bookCreateRequest.translatorIds.filter { it !in foundTranslatorIds }
         if (missingTranslatorIds.isNotEmpty()) {
-            throw EntityNotFoundException("Translator", missingTranslatorIds, ErrorCode.TRANSLATOR_NOT_FOUND)
+            throw EntityNotFoundException("Translator", missingTranslatorIds.map { it.toString() }, ErrorCode.TRANSLATOR_NOT_FOUND)
         }
 
         // Validate illustrators
-        val illustrators = illustratorRepository.findAllById(illustratorIds)
+        val illustrators = illustratorRepository.findAllById(bookCreateRequest.illustratorIds)
         val foundIllustratorIds = illustrators.map { it.id }
-        val missingIllustratorIds = illustratorIds.filter { it !in foundIllustratorIds }
+        val missingIllustratorIds = bookCreateRequest.illustratorIds.filter { it !in foundIllustratorIds }
         if (missingIllustratorIds.isNotEmpty()) {
-            throw EntityNotFoundException("Illustrator", missingIllustratorIds, ErrorCode.ILLUSTRATOR_NOT_FOUND)
+            throw EntityNotFoundException("Illustrator", missingIllustratorIds.map { it.toString() }, ErrorCode.ILLUSTRATOR_NOT_FOUND)
         }
 
-        val newBook = book.copy(authors = authors, translators = translators, illustrators = illustrators)
-        return bookRepository.save(newBook)
+        val bookEntity = bookCreateRequest.toEntity()
+        val newBook = bookEntity.copy(authors = authors, translators = translators, illustrators = illustrators)
+        val savedBook = bookRepository.save(newBook)
+        return savedBook.toResponse()
     }
 
-    fun getBookById(id: String): Book {
-        return bookRepository.findById(id).orElseThrow { 
-            EntityNotFoundException("Book", listOf(id), ErrorCode.BOOK_NOT_FOUND)
+    fun getBookById(id: Long): BookResponse {
+        val book = getBookEntityById(id)
+        return book.toResponse()
+    }
+
+    private fun getBookEntityById(id: Long): Book {
+        return bookRepository.findById(id).orElseThrow {
+            EntityNotFoundException("Book", listOf(id.toString()), ErrorCode.BOOK_NOT_FOUND)
         }
     }
 
-    fun updateBook(id: String, book: Book, authorIds: List<String>, translatorIds: List<String>, illustratorIds: List<String>): Book {
-        val existingBook = getBookById(id)
-        
+    fun updateBook(id: Long, bookUpdateRequest: BookUpdateRequest): BookResponse {
+        val existingBook = getBookEntityById(id)
+
         // Validate authors
-        val authors = authorRepository.findAllById(authorIds)
+        val authors = authorRepository.findAllById(bookUpdateRequest.authorIds)
         val foundAuthorIds = authors.map { it.id }
-        val missingAuthorIds = authorIds.filter { it !in foundAuthorIds }
+        val missingAuthorIds = bookUpdateRequest.authorIds.filter { it !in foundAuthorIds }
         if (missingAuthorIds.isNotEmpty()) {
-            throw EntityNotFoundException("Author", missingAuthorIds, ErrorCode.AUTHOR_NOT_FOUND)
+            throw EntityNotFoundException("Author", missingAuthorIds.map { it.toString() }, ErrorCode.AUTHOR_NOT_FOUND)
         }
 
         // Validate translators
-        val translators = translatorRepository.findAllById(translatorIds)
+        val translators = translatorRepository.findAllById(bookUpdateRequest.translatorIds)
         val foundTranslatorIds = translators.map { it.id }
-        val missingTranslatorIds = translatorIds.filter { it !in foundTranslatorIds }
+        val missingTranslatorIds = bookUpdateRequest.translatorIds.filter { it !in foundTranslatorIds }
         if (missingTranslatorIds.isNotEmpty()) {
-            throw EntityNotFoundException("Translator", missingTranslatorIds, ErrorCode.TRANSLATOR_NOT_FOUND)
+            throw EntityNotFoundException("Translator", missingTranslatorIds.map { it.toString() }, ErrorCode.TRANSLATOR_NOT_FOUND)
         }
 
         // Validate illustrators
-        val illustrators = illustratorRepository.findAllById(illustratorIds)
+        val illustrators = illustratorRepository.findAllById(bookUpdateRequest.illustratorIds)
         val foundIllustratorIds = illustrators.map { it.id }
-        val missingIllustratorIds = illustratorIds.filter { it !in foundIllustratorIds }
+        val missingIllustratorIds = bookUpdateRequest.illustratorIds.filter { it !in foundIllustratorIds }
         if (missingIllustratorIds.isNotEmpty()) {
-            throw EntityNotFoundException("Illustrator", missingIllustratorIds, ErrorCode.ILLUSTRATOR_NOT_FOUND)
+            throw EntityNotFoundException("Illustrator", missingIllustratorIds.map { it.toString() }, ErrorCode.ILLUSTRATOR_NOT_FOUND)
         }
 
         val updatedBook = existingBook.copy(
-            title = book.title,
-            isbn = book.isbn,
-            publisher = book.publisher,
-            quizPrice = book.quizPrice,
-            thumbnail = book.thumbnail,
+            title = bookUpdateRequest.title,
+            isbn = bookUpdateRequest.isbn,
+            publisher = bookUpdateRequest.publisher,
+            quizPrice = bookUpdateRequest.quizPrice,
+            thumbnail = bookUpdateRequest.thumbnail,
             authors = authors,
             translators = translators,
             illustrators = illustrators
         )
-        return bookRepository.save(updatedBook)
+        val savedBook = bookRepository.save(updatedBook)
+        return savedBook.toResponse()
     }
 
-    fun deleteBook(id: String) {
+    fun deleteBook(id: Long) {
         bookRepository.deleteById(id)
     }
 }
