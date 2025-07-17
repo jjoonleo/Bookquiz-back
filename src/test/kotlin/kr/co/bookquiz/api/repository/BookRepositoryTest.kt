@@ -171,7 +171,7 @@ class BookRepositoryTest {
         bookRepository.deleteById(savedBook.id!!)
 
         // Then
-        val foundBook = bookRepository.findById(savedBook.id!!)
+        val foundBook = bookRepository.findById(savedBook.id)
         assertThat(foundBook).isNotPresent
     }
 

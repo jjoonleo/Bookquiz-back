@@ -313,8 +313,8 @@ class PersonRepositoryTest {
 
         // When
         val authorCount = personRepository.countBooksByAuthorId(savedPerson.id!!)
-        val translatorCount = personRepository.countBooksByTranslatorId(savedPerson.id!!)
-        val illustratorCount = personRepository.countBooksByIllustratorId(savedPerson.id!!)
+        val translatorCount = personRepository.countBooksByTranslatorId(savedPerson.id)
+        val illustratorCount = personRepository.countBooksByIllustratorId(savedPerson.id)
 
         // Then
         assertThat(authorCount).isEqualTo(1)
@@ -337,8 +337,8 @@ class PersonRepositoryTest {
 
         // When
         val authorCount = personRepository.countBooksByAuthorId(savedPerson.id!!)
-        val translatorCount = personRepository.countBooksByTranslatorId(savedPerson.id!!)
-        val illustratorCount = personRepository.countBooksByIllustratorId(savedPerson.id!!)
+        val translatorCount = personRepository.countBooksByTranslatorId(savedPerson.id)
+        val illustratorCount = personRepository.countBooksByIllustratorId(savedPerson.id)
 
         // Then
         assertThat(authorCount).isEqualTo(1)
@@ -393,7 +393,7 @@ class PersonRepositoryTest {
         personRepository.deleteById(savedPerson.id!!)
 
         // Then
-        val foundPerson = personRepository.findById(savedPerson.id!!)
+        val foundPerson = personRepository.findById(savedPerson.id)
         assertThat(foundPerson).isNotPresent
     }
 

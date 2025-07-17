@@ -199,7 +199,7 @@ class UserRepositoryTest {
         )
 
         // When
-        val savedUser = userRepository.save(userWithMultipleAuthorities)
+        userRepository.save(userWithMultipleAuthorities)
         testEntityManager.flush()
         testEntityManager.clear()
 
