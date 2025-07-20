@@ -3,17 +3,17 @@ package kr.co.bookquiz.api.controller
 import com.fasterxml.jackson.databind.ObjectMapper
 import kr.co.bookquiz.api.api.exception.EntityNotFoundException
 import kr.co.bookquiz.api.api.exception.ErrorCode
-import kr.co.bookquiz.api.dto.book.PersonResponse
 import kr.co.bookquiz.api.dto.book.BookCreateRequest
 import kr.co.bookquiz.api.dto.book.BookResponse
 import kr.co.bookquiz.api.dto.book.BookUpdateRequest
+import kr.co.bookquiz.api.dto.book.PersonResponse
 import kr.co.bookquiz.api.security.JwtUtil
 import kr.co.bookquiz.api.service.BookService
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.BDDMockito.given
 import org.mockito.BDDMockito.then
-import org.mockito.Mockito.*
+import org.mockito.Mockito.verifyNoInteractions
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.http.MediaType
@@ -21,23 +21,23 @@ import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
 @WebMvcTest(BookController::class)
 class BookControllerTest {
 
-    @Autowired
-    private lateinit var mockMvc: MockMvc
+    @Autowired private lateinit var mockMvc: MockMvc
 
-    @Autowired
-    private lateinit var objectMapper: ObjectMapper
+    @Autowired private lateinit var objectMapper: ObjectMapper
 
-    @MockitoBean
-    private lateinit var bookService: BookService
+    @MockitoBean private lateinit var bookService: BookService
 
-    @MockitoBean
-    private lateinit var jwtUtil: JwtUtil
+    @MockitoBean private lateinit var jwtUtil: JwtUtil
 
     private lateinit var testBookResponse: BookResponse
     private lateinit var testBookCreateRequest: BookCreateRequest
@@ -52,47 +52,49 @@ class BookControllerTest {
         testTranslatorResponse = PersonResponse(id = 2L, name = "Test Translator")
         testIllustratorResponse = PersonResponse(id = 3L, name = "Test Illustrator")
 
-        testBookResponse = BookResponse(
-            id = 1L,
-            title = "Test Book",
-            isbn = "978-0123456789",
-            publisher = "Test Publisher",
-            quizPrice = 1000,
-            thumbnail = "https://example.com/thumbnail.jpg",
-            authors = listOf(testAuthorResponse),
-            translators = listOf(testTranslatorResponse),
-            illustrators = listOf(testIllustratorResponse)
-        )
+        testBookResponse =
+            BookResponse(
+                id = 1L,
+                title = "Test Book",
+                isbn = "978-0123456789",
+                publisher = "Test Publisher",
+                quizPrice = 1000,
+                thumbnail = "https://example.com/thumbnail.jpg",
+                authors = listOf(testAuthorResponse),
+                translators = listOf(testTranslatorResponse),
+                illustrators = listOf(testIllustratorResponse)
+            )
 
-        testBookCreateRequest = BookCreateRequest(
-            title = "Test Book",
-            isbn = "978-0123456789",
-            publisher = "Test Publisher",
-            quizPrice = 1000,
-            thumbnail = "https://example.com/thumbnail.jpg",
-            authorNames = listOf("Test Author"),
-            translatorNames = listOf("Test Translator"),
-            illustratorNames = listOf("Test Illustrator")
-        )
+        testBookCreateRequest =
+            BookCreateRequest(
+                title = "Test Book",
+                isbn = "978-0123456789",
+                publisher = "Test Publisher",
+                quizPrice = 1000,
+                thumbnail = "https://example.com/thumbnail.jpg",
+                authorNames = listOf("Test Author"),
+                translatorNames = listOf("Test Translator"),
+                illustratorNames = listOf("Test Illustrator")
+            )
 
-        testBookUpdateRequest = BookUpdateRequest(
-            title = "Updated Test Book",
-            isbn = "978-0123456789",
-            publisher = "Test Publisher",
-            quizPrice = 1000,
-            thumbnail = "https://example.com/thumbnail.jpg",
-            authorNames = listOf("Test Author"),
-            translatorNames = listOf("Test Translator"),
-            illustratorNames = listOf("Test Illustrator")
-        )
+        testBookUpdateRequest =
+            BookUpdateRequest(
+                title = "Updated Test Book",
+                isbn = "978-0123456789",
+                publisher = "Test Publisher",
+                quizPrice = 1000,
+                thumbnail = "https://example.com/thumbnail.jpg",
+                authorNames = listOf("Test Author"),
+                translatorNames = listOf("Test Translator"),
+                illustratorNames = listOf("Test Illustrator")
+            )
     }
 
     @Test
     @WithMockUser
     fun `should create book successfully`() {
         // Given
-        given(bookService.createBook(testBookCreateRequest))
-            .willReturn(testBookResponse)
+        given(bookService.createBook(testBookCreateRequest)).willReturn(testBookResponse)
 
         // When & Then
         mockMvc.perform(
@@ -156,8 +158,7 @@ class BookControllerTest {
         // Given
         val updatedResponse = testBookResponse.copy(title = "Updated Test Book")
 
-        given(bookService.updateBook(1L, testBookUpdateRequest))
-            .willReturn(updatedResponse)
+        given(bookService.updateBook(1L, testBookUpdateRequest)).willReturn(updatedResponse)
 
         // When & Then
         mockMvc.perform(
@@ -222,7 +223,10 @@ class BookControllerTest {
             .andExpect(jsonPath("$.title").value("Validation Error"))
             .andExpect(jsonPath("$.errorCode").value("E1004"))
             .andExpect(jsonPath("$.fieldErrors.authorNames").isArray)
-            .andExpect(jsonPath("$.fieldErrors.authorNames[0]").value("At least one author is required"))
+            .andExpect(
+                jsonPath("$.fieldErrors.authorNames[0]")
+                    .value("At least one author is required")
+            )
 
         verifyNoInteractions(bookService)
     }
@@ -231,11 +235,8 @@ class BookControllerTest {
     @WithMockUser
     fun `should return detailed validation errors for multiple fields`() {
         // Given
-        val invalidBookRequest = testBookCreateRequest.copy(
-            title = "",
-            isbn = "",
-            authorNames = emptyList()
-        )
+        val invalidBookRequest =
+            testBookCreateRequest.copy(title = "", isbn = "", authorNames = emptyList())
 
         // When & Then
         mockMvc.perform(
@@ -253,7 +254,10 @@ class BookControllerTest {
             .andExpect(jsonPath("$.fieldErrors.isbn").isArray)
             .andExpect(jsonPath("$.fieldErrors.isbn[0]").value("ISBN is required"))
             .andExpect(jsonPath("$.fieldErrors.authorNames").isArray)
-            .andExpect(jsonPath("$.fieldErrors.authorNames[0]").value("At least one author is required"))
+            .andExpect(
+                jsonPath("$.fieldErrors.authorNames[0]")
+                    .value("At least one author is required")
+            )
 
         verifyNoInteractions(bookService)
     }

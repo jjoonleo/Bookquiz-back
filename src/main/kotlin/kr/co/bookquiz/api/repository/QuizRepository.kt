@@ -14,21 +14,21 @@ interface QuizRepository : JpaRepository<Quiz, Long> {
     fun findByTitleContaining(title: String): List<Quiz>
 
     @Query(
-            "SELECT q FROM Quiz q WHERE " +
-                    "(:bookId IS NULL OR q.book.id = :bookId) AND " +
-                    "(:title IS NULL OR LOWER(q.title) LIKE LOWER(CONCAT('%', :title, '%'))) AND " +
-                    "(:type IS NULL OR TYPE(q) = :entityClass)"
+        "SELECT q FROM Quiz q WHERE " +
+            "(:bookId IS NULL OR q.book.id = :bookId) AND " +
+            "(:title IS NULL OR LOWER(q.title) LIKE LOWER(CONCAT('%', :title, '%'))) AND " +
+            "(:type IS NULL OR TYPE(q) = :entityClass)"
     )
     fun findQuizzesWithFilters(
-            @Param("bookId") bookId: Long?,
-            @Param("title") title: String?,
-            @Param("type") type: String?,
-            @Param("entityClass") entityClass: Class<out Quiz>?
+        @Param("bookId") bookId: Long?,
+        @Param("title") title: String?,
+        @Param("type") type: String?,
+        @Param("entityClass") entityClass: Class<out Quiz>?
     ): List<Quiz>
 
     @Query("SELECT q FROM Quiz q WHERE q.book.id = :bookId AND TYPE(q) = :quizType")
     fun findByBookIdAndType(
-            @Param("bookId") bookId: Long,
-            @Param("quizType") quizType: Class<out Quiz>
+        @Param("bookId") bookId: Long,
+        @Param("quizType") quizType: Class<out Quiz>
     ): List<Quiz>
 }

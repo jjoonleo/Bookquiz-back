@@ -9,18 +9,17 @@ import org.springframework.context.annotation.Import
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
 @WebMvcTest(TestController::class)
 @Import(TestSecurityConfig::class)
 class TestControllerTest {
 
-    @Autowired
-    private lateinit var mockMvc: MockMvc
+    @Autowired private lateinit var mockMvc: MockMvc
 
-    @MockitoBean
-    private lateinit var jwtUtil: JwtUtil
+    @MockitoBean private lateinit var jwtUtil: JwtUtil
 
     @Test
     fun `should access public endpoint without authentication`() {
@@ -51,6 +50,9 @@ class TestControllerTest {
             .andExpect(jsonPath("$.message").value("Access granted to protected endpoint"))
             .andExpect(jsonPath("$.data.username").value("adminuser"))
             .andExpect(jsonPath("$.data.authorities").isArray)
-            .andExpect(jsonPath("$.data.authorities").value(org.hamcrest.Matchers.hasItems("ROLE_ADMIN", "ROLE_USER")))
+            .andExpect(
+                jsonPath("$.data.authorities")
+                    .value(org.hamcrest.Matchers.hasItems("ROLE_ADMIN", "ROLE_USER"))
+            )
     }
 }

@@ -18,16 +18,14 @@ import org.springframework.test.context.ActiveProfiles
 @ActiveProfiles("test")
 class BookRepositoryTest {
 
-    @Autowired
-    private lateinit var bookRepository: BookRepository
+    @Autowired private lateinit var bookRepository: BookRepository
 
-    @Autowired
-    private lateinit var testEntityManager: TestEntityManager
+    @Autowired private lateinit var testEntityManager: TestEntityManager
 
     @Test
     fun `should find all books returns empty list initially`() {
         // Given - no books
-        
+
         // When
         val allBooks = bookRepository.findAll()
 
@@ -48,7 +46,7 @@ class BookRepositoryTest {
     @Test
     fun `should find book by non-existent id returns empty`() {
         // Given - no books
-        
+
         // When
         val foundBook = bookRepository.findById(999L)
 
@@ -59,7 +57,7 @@ class BookRepositoryTest {
     @Test
     fun `should delete by non-existent id does not throw exception`() {
         // Given - no books
-        
+
         // When & Then - should not throw exception
         bookRepository.deleteById(999L)
     }
@@ -67,13 +65,14 @@ class BookRepositoryTest {
     @Test
     fun `should save and find book by id`() {
         // Given
-        val book = Book(
-            title = "Test Book",
-            isbn = "9780123456789",
-            publisher = "Test Publisher",
-            quizPrice = 1000,
-            thumbnail = "https://example.com/thumbnail.jpg"
-        )
+        val book =
+            Book(
+                title = "Test Book",
+                isbn = "9780123456789",
+                publisher = "Test Publisher",
+                quizPrice = 1000,
+                thumbnail = "https://example.com/thumbnail.jpg"
+            )
 
         // When
         val savedBook = bookRepository.save(book)
@@ -95,21 +94,22 @@ class BookRepositoryTest {
         val author = Person(name = "Test Author")
         val translator = Person(name = "Test Translator")
         val illustrator = Person(name = "Test Illustrator")
-        
+
         val savedAuthor = testEntityManager.persistAndFlush(author)
         val savedTranslator = testEntityManager.persistAndFlush(translator)
         val savedIllustrator = testEntityManager.persistAndFlush(illustrator)
-        
-        val book = Book(
-            title = "Book with Relations",
-            isbn = "9780123456790",
-            publisher = "Relation Publisher",
-            quizPrice = 2000,
-            thumbnail = "https://example.com/relations.jpg",
-            authors = listOf(savedAuthor),
-            translators = listOf(savedTranslator),
-            illustrators = listOf(savedIllustrator)
-        )
+
+        val book =
+            Book(
+                title = "Book with Relations",
+                isbn = "9780123456790",
+                publisher = "Relation Publisher",
+                quizPrice = 2000,
+                thumbnail = "https://example.com/relations.jpg",
+                authors = listOf(savedAuthor),
+                translators = listOf(savedTranslator),
+                illustrators = listOf(savedIllustrator)
+            )
 
         // When
         val savedBook = bookRepository.save(book)
@@ -118,7 +118,7 @@ class BookRepositoryTest {
         assertThat(savedBook.id).isNotNull
         val foundBook = bookRepository.findById(savedBook.id!!)
         assertThat(foundBook).isPresent
-        
+
         val retrievedBook = foundBook.get()
         assertThat(retrievedBook.title).isEqualTo("Book with Relations")
         assertThat(retrievedBook.authors).hasSize(1)
@@ -132,20 +132,18 @@ class BookRepositoryTest {
     @Test
     fun `should update book`() {
         // Given
-        val book = Book(
-            title = "Original Title",
-            isbn = "9780123456791",
-            publisher = "Update Publisher",
-            quizPrice = 1500,
-            thumbnail = "https://example.com/original.jpg"
-        )
+        val book =
+            Book(
+                title = "Original Title",
+                isbn = "9780123456791",
+                publisher = "Update Publisher",
+                quizPrice = 1500,
+                thumbnail = "https://example.com/original.jpg"
+            )
         val savedBook = bookRepository.save(book)
 
         // When
-        val updatedBook = savedBook.copy(
-            title = "Updated Test Book",
-            quizPrice = 2000
-        )
+        val updatedBook = savedBook.copy(title = "Updated Test Book", quizPrice = 2000)
         bookRepository.save(updatedBook)
 
         // Then
@@ -158,41 +156,45 @@ class BookRepositoryTest {
     @Test
     fun `should delete book`() {
         // Given
-        val book = Book(
-            title = "Book to Delete",
-            isbn = "9780123456792",
-            publisher = "Delete Publisher",
-            quizPrice = 1000,
-            thumbnail = "https://example.com/delete.jpg"
-        )
+        val book =
+            Book(
+                title = "Book to Delete",
+                isbn = "9780123456792",
+                publisher = "Delete Publisher",
+                quizPrice = 1000,
+                thumbnail = "https://example.com/delete.jpg"
+            )
         val savedBook = bookRepository.save(book)
 
         // When
-        bookRepository.deleteById(savedBook.id!!)
+        val bookId = savedBook.id!!
+        bookRepository.deleteById(bookId)
 
         // Then
-        val foundBook = bookRepository.findById(savedBook.id)
+        val foundBook = bookRepository.findById(bookId)
         assertThat(foundBook).isNotPresent
     }
 
     @Test
     fun `should find all books`() {
         // Given
-        val book1 = Book(
-            title = "First Book",
-            isbn = "9780123456793",
-            publisher = "List Publisher",
-            quizPrice = 1000,
-            thumbnail = "https://example.com/first.jpg"
-        )
-        val book2 = Book(
-            title = "Second Book",
-            isbn = "9780123456794",
-            publisher = "List Publisher",
-            quizPrice = 1500,
-            thumbnail = "https://example.com/second.jpg"
-        )
-        
+        val book1 =
+            Book(
+                title = "First Book",
+                isbn = "9780123456793",
+                publisher = "List Publisher",
+                quizPrice = 1000,
+                thumbnail = "https://example.com/first.jpg"
+            )
+        val book2 =
+            Book(
+                title = "Second Book",
+                isbn = "9780123456794",
+                publisher = "List Publisher",
+                quizPrice = 1500,
+                thumbnail = "https://example.com/second.jpg"
+            )
+
         bookRepository.save(book1)
         bookRepository.save(book2)
 
@@ -207,13 +209,14 @@ class BookRepositoryTest {
     @Test
     fun `should save book without optional fields`() {
         // Given
-        val bookWithoutOptional = Book(
-            title = "Minimal Book",
-            isbn = "9780123456795",
-            publisher = "Minimal Publisher",
-            quizPrice = 500,
-            thumbnail = null
-        )
+        val bookWithoutOptional =
+            Book(
+                title = "Minimal Book",
+                isbn = "9780123456795",
+                publisher = "Minimal Publisher",
+                quizPrice = 500,
+                thumbnail = null
+            )
 
         // When
         val savedBook = bookRepository.save(bookWithoutOptional)
@@ -232,20 +235,22 @@ class BookRepositoryTest {
     @Test
     fun `should save multiple books with sequential IDs`() {
         // Given
-        val book1 = Book(
-            title = "Sequential Test 1",
-            isbn = "9780123456797",
-            publisher = "Sequential Publisher",
-            quizPrice = 1000,
-            thumbnail = "https://example.com/seq1.jpg"
-        )
-        val book2 = Book(
-            title = "Sequential Test 2",
-            isbn = "9780123456798",
-            publisher = "Sequential Publisher",
-            quizPrice = 1500,
-            thumbnail = "https://example.com/seq2.jpg"
-        )
+        val book1 =
+            Book(
+                title = "Sequential Test 1",
+                isbn = "9780123456797",
+                publisher = "Sequential Publisher",
+                quizPrice = 1000,
+                thumbnail = "https://example.com/seq1.jpg"
+            )
+        val book2 =
+            Book(
+                title = "Sequential Test 2",
+                isbn = "9780123456798",
+                publisher = "Sequential Publisher",
+                quizPrice = 1500,
+                thumbnail = "https://example.com/seq2.jpg"
+            )
 
         // When
         val savedBook1 = bookRepository.save(book1)
@@ -254,8 +259,10 @@ class BookRepositoryTest {
         // Then
         assertThat(savedBook1.id).isNotNull
         assertThat(savedBook2.id).isNotNull
-        assertThat(savedBook1.id).isLessThan(savedBook2.id)
-        assertThat(savedBook2.id!! - savedBook1.id!!).isEqualTo(1L)
+        val id1 = savedBook1.id!!
+        val id2 = savedBook2.id!!
+        assertThat(id1).isLessThan(id2)
+        assertThat(id2 - id1).isEqualTo(1L)
     }
 
     @Test
@@ -265,15 +272,16 @@ class BookRepositoryTest {
         val author2 = Person(name = "Second Author")
         val savedAuthor1 = testEntityManager.persistAndFlush(author1)
         val savedAuthor2 = testEntityManager.persistAndFlush(author2)
-        
-        val book = Book(
-            title = "Multi-Author Book",
-            isbn = "9780123456799",
-            publisher = "Multi Publisher",
-            quizPrice = 2000,
-            thumbnail = "https://example.com/multi.jpg",
-            authors = listOf(savedAuthor1, savedAuthor2)
-        )
+
+        val book =
+            Book(
+                title = "Multi-Author Book",
+                isbn = "9780123456799",
+                publisher = "Multi Publisher",
+                quizPrice = 2000,
+                thumbnail = "https://example.com/multi.jpg",
+                authors = listOf(savedAuthor1, savedAuthor2)
+            )
 
         // When
         val savedBook = bookRepository.save(book)
@@ -283,7 +291,8 @@ class BookRepositoryTest {
         val foundBook = bookRepository.findById(savedBook.id!!)
         assertThat(foundBook).isPresent
         assertThat(foundBook.get().authors).hasSize(2)
-        assertThat(foundBook.get().authors.map { it.name }).containsExactlyInAnyOrder("First Author", "Second Author")
+        assertThat(foundBook.get().authors.map { it.name })
+            .containsExactlyInAnyOrder("First Author", "Second Author")
     }
 
     @Test
@@ -293,21 +302,22 @@ class BookRepositoryTest {
         val translator2 = Person(name = "Second Translator")
         val illustrator1 = Person(name = "First Illustrator")
         val illustrator2 = Person(name = "Second Illustrator")
-        
+
         val savedTranslator1 = testEntityManager.persistAndFlush(translator1)
         val savedTranslator2 = testEntityManager.persistAndFlush(translator2)
         val savedIllustrator1 = testEntityManager.persistAndFlush(illustrator1)
         val savedIllustrator2 = testEntityManager.persistAndFlush(illustrator2)
-        
-        val book = Book(
-            title = "Multi-Collaborator Book",
-            isbn = "9780123456800",
-            publisher = "Collaborator Publisher",
-            quizPrice = 2500,
-            thumbnail = "https://example.com/collab.jpg",
-            translators = listOf(savedTranslator1, savedTranslator2),
-            illustrators = listOf(savedIllustrator1, savedIllustrator2)
-        )
+
+        val book =
+            Book(
+                title = "Multi-Collaborator Book",
+                isbn = "9780123456800",
+                publisher = "Collaborator Publisher",
+                quizPrice = 2500,
+                thumbnail = "https://example.com/collab.jpg",
+                translators = listOf(savedTranslator1, savedTranslator2),
+                illustrators = listOf(savedIllustrator1, savedIllustrator2)
+            )
 
         // When
         val savedBook = bookRepository.save(book)
@@ -316,11 +326,13 @@ class BookRepositoryTest {
         assertThat(savedBook.id).isNotNull
         val foundBook = bookRepository.findById(savedBook.id!!)
         assertThat(foundBook).isPresent
-        
+
         val retrievedBook = foundBook.get()
         assertThat(retrievedBook.translators).hasSize(2)
-        assertThat(retrievedBook.translators.map { it.name }).containsExactlyInAnyOrder("First Translator", "Second Translator")
+        assertThat(retrievedBook.translators.map { it.name })
+            .containsExactlyInAnyOrder("First Translator", "Second Translator")
         assertThat(retrievedBook.illustrators).hasSize(2)
-        assertThat(retrievedBook.illustrators.map { it.name }).containsExactlyInAnyOrder("First Illustrator", "Second Illustrator")
+        assertThat(retrievedBook.illustrators.map { it.name })
+            .containsExactlyInAnyOrder("First Illustrator", "Second Illustrator")
     }
 }

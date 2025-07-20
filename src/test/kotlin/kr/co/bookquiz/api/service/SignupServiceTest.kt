@@ -16,7 +16,9 @@ import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.BDDMockito.given
 import org.mockito.BDDMockito.then
-import org.mockito.Mockito.*
+import org.mockito.Mockito.any
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.verifyNoInteractions
 import org.mockito.junit.jupiter.MockitoExtension
 import org.springframework.security.crypto.password.PasswordEncoder
 import java.time.LocalDateTime
@@ -39,25 +41,27 @@ class SignupServiceTest {
         passwordEncoder = mock(PasswordEncoder::class.java)
         signupService = SignupService(userRepository, authorityRepository, passwordEncoder)
 
-        defaultAuthority = Authority(
-            id = 1L,
-            name = "ROLE_USER",
-            description = "Default user role",
-            createdAt = LocalDateTime.now()
-        )
+        defaultAuthority =
+            Authority(
+                id = 1L,
+                name = "ROLE_USER",
+                description = "Default user role",
+                createdAt = LocalDateTime.now()
+            )
 
-        validSignupRequest = SignupRequest(
-            username = "testuser",
-            name = "Test User",
-            password = "TestPassword123!",
-            confirmPassword = "TestPassword123!",
-            email = "test@example.com",
-            phoneNumber = "+82101234567",
-            dateOfBirth = LocalDateTime.of(1990, 1, 1, 0, 0),
-            province = Province.SEOUL,
-            grade = Grade.COLLEGE_GENERAL,
-            gender = true
-        )
+        validSignupRequest =
+            SignupRequest(
+                username = "testuser",
+                name = "Test User",
+                password = "TestPassword123!",
+                confirmPassword = "TestPassword123!",
+                email = "test@example.com",
+                phoneNumber = "+82101234567",
+                dateOfBirth = LocalDateTime.of(1990, 1, 1, 0, 0),
+                province = Province.SEOUL,
+                grade = Grade.COLLEGE_GENERAL,
+                gender = true
+            )
     }
 
     @Test
@@ -69,24 +73,25 @@ class SignupServiceTest {
         given(authorityRepository.findByName("ROLE_USER")).willReturn(defaultAuthority)
         given(passwordEncoder.encode("TestPassword123!")).willReturn("encodedPassword")
 
-        val savedUser = User(
-            username = "testuser",
-            name = "Test User",
-            password = "encodedPassword",
-            email = "test@example.com",
-            phoneNumber = "+82101234567",
-            dateOfBirth = LocalDateTime.of(1990, 1, 1, 0, 0),
-            province = Province.SEOUL,
-            deleted = false,
-            grade = Grade.COLLEGE_GENERAL,
-            enabled = true,
-            gender = true,
-            refreshToken = null,
-            lastLogin = null,
-            createdAt = LocalDateTime.now(),
-            updatedAt = LocalDateTime.now(),
-            authorities = setOf(defaultAuthority)
-        )
+        val savedUser =
+            User(
+                username = "testuser",
+                name = "Test User",
+                password = "encodedPassword",
+                email = "test@example.com",
+                phoneNumber = "+82101234567",
+                dateOfBirth = LocalDateTime.of(1990, 1, 1, 0, 0),
+                province = Province.SEOUL,
+                deleted = false,
+                grade = Grade.COLLEGE_GENERAL,
+                enabled = true,
+                gender = true,
+                refreshToken = null,
+                lastLogin = null,
+                createdAt = LocalDateTime.now(),
+                updatedAt = LocalDateTime.now(),
+                authorities = setOf(defaultAuthority)
+            )
 
         given(userRepository.save(any(User::class.java))).willReturn(savedUser)
 
@@ -108,14 +113,14 @@ class SignupServiceTest {
     @Test
     fun `should throw exception when passwords do not match`() {
         // Given
-        val requestWithMismatchedPasswords = validSignupRequest.copy(
-            confirmPassword = "DifferentPassword123!"
-        )
+        val requestWithMismatchedPasswords =
+            validSignupRequest.copy(confirmPassword = "DifferentPassword123!")
 
         // When & Then
-        val exception = assertThrows<ApiException> {
-            signupService.registerUser(requestWithMismatchedPasswords)
-        }
+        val exception =
+            assertThrows<ApiException> {
+                signupService.registerUser(requestWithMismatchedPasswords)
+            }
 
         assertThat(exception.errorCode).isEqualTo(ErrorCode.PASSWORD_MISMATCH)
         verifyNoInteractions(userRepository, passwordEncoder)
@@ -127,9 +132,8 @@ class SignupServiceTest {
         given(userRepository.existsByUsernameAndDeletedFalse("testuser")).willReturn(true)
 
         // When & Then
-        val exception = assertThrows<ApiException> {
-            signupService.registerUser(validSignupRequest)
-        }
+        val exception =
+            assertThrows<ApiException> { signupService.registerUser(validSignupRequest) }
 
         assertThat(exception.errorCode).isEqualTo(ErrorCode.USERNAME_DUPLICATE)
         then(userRepository).should().existsByUsernameAndDeletedFalse("testuser")
@@ -143,9 +147,8 @@ class SignupServiceTest {
         given(userRepository.existsByEmailAndDeletedFalse("test@example.com")).willReturn(true)
 
         // When & Then
-        val exception = assertThrows<ApiException> {
-            signupService.registerUser(validSignupRequest)
-        }
+        val exception =
+            assertThrows<ApiException> { signupService.registerUser(validSignupRequest) }
 
         assertThat(exception.errorCode).isEqualTo(ErrorCode.EMAIL_DUPLICATE)
         then(userRepository).should().existsByUsernameAndDeletedFalse("testuser")
@@ -160,9 +163,8 @@ class SignupServiceTest {
         given(userRepository.existsByPhoneNumberAndDeletedFalse("+82101234567")).willReturn(true)
 
         // When & Then
-        val exception = assertThrows<ApiException> {
-            signupService.registerUser(validSignupRequest)
-        }
+        val exception =
+            assertThrows<ApiException> { signupService.registerUser(validSignupRequest) }
 
         assertThat(exception.errorCode).isEqualTo(ErrorCode.PHONE_NUMBER_DUPLICATE)
         then(userRepository).should().existsByUsernameAndDeletedFalse("testuser")
@@ -180,24 +182,25 @@ class SignupServiceTest {
         given(authorityRepository.save(any(Authority::class.java))).willReturn(defaultAuthority)
         given(passwordEncoder.encode("TestPassword123!")).willReturn("encodedPassword")
 
-        val savedUser = User(
-            username = "testuser",
-            name = "Test User",
-            password = "encodedPassword",
-            email = "test@example.com",
-            phoneNumber = "+82101234567",
-            dateOfBirth = LocalDateTime.of(1990, 1, 1, 0, 0),
-            province = Province.SEOUL,
-            deleted = false,
-            grade = Grade.COLLEGE_GENERAL,
-            enabled = true,
-            gender = true,
-            refreshToken = null,
-            lastLogin = null,
-            createdAt = LocalDateTime.now(),
-            updatedAt = LocalDateTime.now(),
-            authorities = setOf(defaultAuthority)
-        )
+        val savedUser =
+            User(
+                username = "testuser",
+                name = "Test User",
+                password = "encodedPassword",
+                email = "test@example.com",
+                phoneNumber = "+82101234567",
+                dateOfBirth = LocalDateTime.of(1990, 1, 1, 0, 0),
+                province = Province.SEOUL,
+                deleted = false,
+                grade = Grade.COLLEGE_GENERAL,
+                enabled = true,
+                gender = true,
+                refreshToken = null,
+                lastLogin = null,
+                createdAt = LocalDateTime.now(),
+                updatedAt = LocalDateTime.now(),
+                authorities = setOf(defaultAuthority)
+            )
 
         given(userRepository.save(any(User::class.java))).willReturn(savedUser)
 
@@ -228,7 +231,8 @@ class SignupServiceTest {
     @Test
     fun `should check email availability correctly`() {
         // Given
-        given(userRepository.existsByEmailAndDeletedFalse("available@example.com")).willReturn(false)
+        given(userRepository.existsByEmailAndDeletedFalse("available@example.com"))
+            .willReturn(false)
         given(userRepository.existsByEmailAndDeletedFalse("taken@example.com")).willReturn(true)
 
         // When
@@ -263,12 +267,12 @@ class SignupServiceTest {
         given(userRepository.existsByPhoneNumberAndDeletedFalse("+82101234567")).willReturn(false)
         given(authorityRepository.findByName("ROLE_USER")).willReturn(defaultAuthority)
         given(passwordEncoder.encode("TestPassword123!")).willReturn("encodedPassword")
-        given(userRepository.save(any(User::class.java))).willThrow(RuntimeException("Database error"))
+        given(userRepository.save(any(User::class.java)))
+            .willThrow(RuntimeException("Database error"))
 
         // When & Then
-        val exception = assertThrows<ApiException> {
-            signupService.registerUser(validSignupRequest)
-        }
+        val exception =
+            assertThrows<ApiException> { signupService.registerUser(validSignupRequest) }
 
         assertThat(exception.errorCode).isEqualTo(ErrorCode.INTERNAL_ERROR)
         assertThat(exception.message).contains("Failed to register user")

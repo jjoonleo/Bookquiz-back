@@ -1,86 +1,97 @@
 package kr.co.bookquiz.api
 
-import kotlin.test.assertEquals
 import kr.co.bookquiz.api.controller.QuizController
 import kr.co.bookquiz.api.dto.quiz.QuizResponseDto
 import kr.co.bookquiz.api.entity.Book
-import kr.co.bookquiz.api.entity.Quiz
+import kr.co.bookquiz.api.entity.MultipleChoiceQuiz
+import kr.co.bookquiz.api.entity.SubjectiveQuiz
+import kr.co.bookquiz.api.entity.TrueFalseQuiz
 import kr.co.bookquiz.api.service.QuizService
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mock
-import org.mockito.Mockito.*
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.`when`
 import org.mockito.MockitoAnnotations
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import kotlin.test.assertEquals
 
 class QuizControllerTest {
 
-  @Mock private lateinit var quizService: QuizService
+    @Mock private lateinit var quizService: QuizService
 
-  private lateinit var quizController: QuizController
+    private lateinit var quizController: QuizController
 
-  private lateinit var mockBook: Book
+    private lateinit var mockBook: Book
 
-  @BeforeEach
-  fun setUp() {
-    MockitoAnnotations.openMocks(this)
-    quizController = QuizController(quizService)
-    mockBook =
+    @BeforeEach
+    fun setUp() {
+        MockitoAnnotations.openMocks(this)
+        quizController = QuizController(quizService)
+        mockBook =
             Book(
-                    id = 1L,
-                    title = "Test Book",
-                    isbn = "1234567890123",
-                    publisher = "Test Publisher",
-                    quizPrice = 1000,
-                    thumbnail = null
+                id = 1L,
+                title = "Test Book",
+                isbn = "1234567890123",
+                publisher = "Test Publisher",
+                quizPrice = 1000,
+                thumbnail = null
             )
-  }
+    }
 
-  @Test
-  fun `get quizzes by book id returns correct response`() {
-    // Given
-    val bookId = 1L
-    val quizzes =
+    @Test
+    fun `get quizzes by book id returns correct response`() {
+        // Given
+        val bookId = 1L
+        val quizzes =
             listOf(
-                    Quiz(
-                            id = 1L,
-                            title = "Quiz 1",
-                            questionType = "MULTIPLE_CHOICE",
-                            book = mockBook
-                    ),
-                    Quiz(id = 2L, title = "Quiz 2", questionType = "SUBJECTIVE", book = mockBook),
-                    Quiz(id = 3L, title = "Quiz 3", questionType = "TRUE_FALSE", book = mockBook)
+                MultipleChoiceQuiz(
+                    id = 1L,
+                    title = "Quiz 1",
+                    answer = 0,
+                    options = listOf("A", "B", "C"),
+                    book = mockBook
+                ),
+                SubjectiveQuiz(
+                    id = 2L,
+                    title = "Quiz 2",
+                    answer = "Answer",
+                    book = mockBook
+                ),
+                TrueFalseQuiz(id = 3L, title = "Quiz 3", answer = true, book = mockBook)
             )
-    val quizDtos = quizzes.map { QuizResponseDto.from(it) }
+        val quizDtos = quizzes.map { it.toDto() }
 
-    `when`(quizService.getQuizzesByBookId(bookId)).thenReturn(quizDtos)
+        `when`(quizService.getQuizzesByBookId(bookId)).thenReturn(quizDtos)
 
-    // When
-    val response: ResponseEntity<List<QuizResponseDto>> = quizController.getQuizzesByBookId(bookId)
+        // When
+        val response: ResponseEntity<List<QuizResponseDto>> =
+            quizController.getQuizzesByBookId(bookId)
 
-    // Then
-    assertEquals(HttpStatus.OK, response.statusCode)
-    assertEquals(quizDtos, response.body)
-    assertEquals(3, response.body?.size)
-    verify(quizService).getQuizzesByBookId(bookId)
-  }
+        // Then
+        assertEquals(HttpStatus.OK, response.statusCode)
+        assertEquals(quizDtos, response.body)
+        assertEquals(3, response.body?.size)
+        verify(quizService).getQuizzesByBookId(bookId)
+    }
 
-  @Test
-  fun `get quizzes by book id returns empty list when no quizzes found`() {
-    // Given
-    val bookId = 999L
-    val emptyQuizzes = emptyList<QuizResponseDto>()
+    @Test
+    fun `get quizzes by book id returns empty list when no quizzes found`() {
+        // Given
+        val bookId = 999L
+        val emptyQuizzes = emptyList<QuizResponseDto>()
 
-    `when`(quizService.getQuizzesByBookId(bookId)).thenReturn(emptyQuizzes)
+        `when`(quizService.getQuizzesByBookId(bookId)).thenReturn(emptyQuizzes)
 
-    // When
-    val response: ResponseEntity<List<QuizResponseDto>> = quizController.getQuizzesByBookId(bookId)
+        // When
+        val response: ResponseEntity<List<QuizResponseDto>> =
+            quizController.getQuizzesByBookId(bookId)
 
-    // Then
-    assertEquals(HttpStatus.OK, response.statusCode)
-    assertEquals(emptyQuizzes, response.body)
-    assertEquals(0, response.body?.size)
-    verify(quizService).getQuizzesByBookId(bookId)
-  }
+        // Then
+        assertEquals(HttpStatus.OK, response.statusCode)
+        assertEquals(emptyQuizzes, response.body)
+        assertEquals(0, response.body?.size)
+        verify(quizService).getQuizzesByBookId(bookId)
+    }
 }

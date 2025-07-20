@@ -6,5 +6,5 @@ import org.springframework.stereotype.Repository
 
 @Repository
 interface SubjectiveAnswerRepository : JpaRepository<SubjectiveAnswerEntity, Long> {
-  fun findByQuizId(quizId: Long): SubjectiveAnswerEntity?
+    fun findByQuizId(quizId: Long): SubjectiveAnswerEntity?
 }

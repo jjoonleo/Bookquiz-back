@@ -4,7 +4,13 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import kr.co.bookquiz.api.api.exception.ApiException
 import kr.co.bookquiz.api.api.exception.ErrorCode
 import kr.co.bookquiz.api.config.TestSecurityConfig
-import kr.co.bookquiz.api.dto.auth.*
+import kr.co.bookquiz.api.dto.auth.LoginRequest
+import kr.co.bookquiz.api.dto.auth.LoginResponse
+import kr.co.bookquiz.api.dto.auth.RefreshTokenRequest
+import kr.co.bookquiz.api.dto.auth.RefreshTokenResponse
+import kr.co.bookquiz.api.dto.auth.SignupRequest
+import kr.co.bookquiz.api.dto.auth.SignupResponse
+import kr.co.bookquiz.api.dto.auth.UserInfo
 import kr.co.bookquiz.api.entity.Grade
 import kr.co.bookquiz.api.entity.Province
 import kr.co.bookquiz.api.security.JwtUtil
@@ -15,7 +21,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.BDDMockito.given
 import org.mockito.BDDMockito.then
-import org.mockito.Mockito.*
+import org.mockito.Mockito.verifyNoInteractions
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.context.annotation.Import
@@ -24,8 +30,10 @@ import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.time.LocalDateTime
 
 @WebMvcTest(AuthController::class)
@@ -34,14 +42,11 @@ class AuthControllerTest {
     @Autowired lateinit var mockMvc: MockMvc
     @Autowired lateinit var objectMapper: ObjectMapper
 
-    @MockitoBean
-    private lateinit var authService: AuthService
+    @MockitoBean private lateinit var authService: AuthService
 
-    @MockitoBean
-    private lateinit var signupService: SignupService
+    @MockitoBean private lateinit var signupService: SignupService
 
-    @MockitoBean
-    private lateinit var jwtUtil: JwtUtil
+    @MockitoBean private lateinit var jwtUtil: JwtUtil
 
     private lateinit var validLoginRequest: LoginRequest
     private lateinit var validSignupRequest: SignupRequest
@@ -50,44 +55,45 @@ class AuthControllerTest {
 
     @BeforeEach
     fun setUp() {
-        validLoginRequest = LoginRequest(
-            username = "testuser",
-            password = "password123"
-        )
+        validLoginRequest = LoginRequest(username = "testuser", password = "password123")
 
-        validSignupRequest = SignupRequest(
-            username = "newuser",
-            name = "New User",
-            password = "NewPassword123!",
-            confirmPassword = "NewPassword123!",
-            email = "newuser@example.com",
-            phoneNumber = "+82101234567",
-            dateOfBirth = LocalDateTime.of(1990, 1, 1, 0, 0),
-            province = Province.SEOUL,
-            grade = Grade.COLLEGE_GENERAL,
-            gender = true
-        )
+        validSignupRequest =
+            SignupRequest(
+                username = "newuser",
+                name = "New User",
+                password = "NewPassword123!",
+                confirmPassword = "NewPassword123!",
+                email = "newuser@example.com",
+                phoneNumber = "+82101234567",
+                dateOfBirth = LocalDateTime.of(1990, 1, 1, 0, 0),
+                province = Province.SEOUL,
+                grade = Grade.COLLEGE_GENERAL,
+                gender = true
+            )
 
-        val userInfo = UserInfo(
-            username = "testuser",
-            name = "Test User",
-            email = "test@example.com",
-            authorities = listOf("ROLE_USER")
-        )
+        val userInfo =
+            UserInfo(
+                username = "testuser",
+                name = "Test User",
+                email = "test@example.com",
+                authorities = listOf("ROLE_USER")
+            )
 
-        loginResponse = LoginResponse(
-            accessToken = "access-token",
-            refreshToken = "refresh-token",
-            tokenType = "Bearer",
-            expiresIn = 3600L,
-            user = userInfo
-        )
+        loginResponse =
+            LoginResponse(
+                accessToken = "access-token",
+                refreshToken = "refresh-token",
+                tokenType = "Bearer",
+                expiresIn = 3600L,
+                user = userInfo
+            )
 
-        signupResponse = SignupResponse(
-            username = "newuser",
-            name = "New User",
-            email = "newuser@example.com"
-        )
+        signupResponse =
+            SignupResponse(
+                username = "newuser",
+                name = "New User",
+                email = "newuser@example.com"
+            )
     }
 
     @Test
@@ -139,10 +145,11 @@ class AuthControllerTest {
     @Test
     fun `should return 400 when login request is invalid`() {
         // Given
-        val invalidLoginRequest = LoginRequest(
-            username = "", // Empty username
-            password = "password123"
-        )
+        val invalidLoginRequest =
+            LoginRequest(
+                username = "", // Empty username
+                password = "password123"
+            )
 
         // When & Then
         mockMvc.perform(
@@ -159,10 +166,11 @@ class AuthControllerTest {
     @Test
     fun `should return detailed validation errors for login with empty username`() {
         // Given
-        val invalidLoginRequest = LoginRequest(
-            username = "", // Empty username
-            password = "password123"
-        )
+        val invalidLoginRequest =
+            LoginRequest(
+                username = "", // Empty username
+                password = "password123"
+            )
 
         // When & Then
         mockMvc.perform(
@@ -183,10 +191,11 @@ class AuthControllerTest {
     @Test
     fun `should return detailed validation errors for login with multiple invalid fields`() {
         // Given
-        val invalidLoginRequest = LoginRequest(
-            username = "", // Empty username
-            password = ""  // Empty password
-        )
+        val invalidLoginRequest =
+            LoginRequest(
+                username = "", // Empty username
+                password = "" // Empty password
+            )
 
         // When & Then
         mockMvc.perform(
@@ -209,22 +218,27 @@ class AuthControllerTest {
     @Test
     fun `should return detailed validation errors for refresh token with empty token`() {
         // Given
-        val invalidRefreshTokenRequest = RefreshTokenRequest(
-            refreshToken = "" // Empty refresh token
-        )
+        val invalidRefreshTokenRequest =
+            RefreshTokenRequest(
+                refreshToken = "" // Empty refresh token
+            )
 
         // When & Then
         mockMvc.perform(
             post("/api/auth/refresh")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(invalidRefreshTokenRequest))
+                .content(
+                    objectMapper.writeValueAsString(invalidRefreshTokenRequest)
+                )
         )
             .andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.detail").value("Validation failed"))
             .andExpect(jsonPath("$.title").value("Validation Error"))
             .andExpect(jsonPath("$.errorCode").value("E1004"))
             .andExpect(jsonPath("$.fieldErrors.refreshToken").isArray)
-            .andExpect(jsonPath("$.fieldErrors.refreshToken[0]").value("Refresh token is required"))
+            .andExpect(
+                jsonPath("$.fieldErrors.refreshToken[0]").value("Refresh token is required")
+            )
 
         verifyNoInteractions(authService)
     }
@@ -233,11 +247,12 @@ class AuthControllerTest {
     fun `should refresh token successfully`() {
         // Given
         val refreshTokenRequest = RefreshTokenRequest("valid-refresh-token")
-        val refreshTokenResponse = RefreshTokenResponse(
-            accessToken = "new-access-token",
-            tokenType = "Bearer",
-            expiresIn = 3600L
-        )
+        val refreshTokenResponse =
+            RefreshTokenResponse(
+                accessToken = "new-access-token",
+                tokenType = "Bearer",
+                expiresIn = 3600L
+            )
         given(authService.refreshToken("valid-refresh-token")).willReturn(refreshTokenResponse)
 
         // When & Then
@@ -332,11 +347,12 @@ class AuthControllerTest {
     @Test
     fun `should return 400 when signup request is invalid`() {
         // Given
-        val invalidSignupRequest = validSignupRequest.copy(
-            username = "ab", // Too short
-            email = "invalid-email", // Invalid format
-            password = "weak" // Too weak
-        )
+        val invalidSignupRequest =
+            validSignupRequest.copy(
+                username = "ab", // Too short
+                email = "invalid-email", // Invalid format
+                password = "weak" // Too weak
+            )
 
         // When & Then
         mockMvc.perform(
@@ -353,9 +369,10 @@ class AuthControllerTest {
     @Test
     fun `should return detailed validation errors for signup with invalid username`() {
         // Given
-        val invalidSignupRequest = validSignupRequest.copy(
-            username = "ab" // Too short (minimum 3 characters)
-        )
+        val invalidSignupRequest =
+            validSignupRequest.copy(
+                username = "ab" // Too short (minimum 3 characters)
+            )
 
         // When & Then
         mockMvc.perform(
@@ -368,7 +385,10 @@ class AuthControllerTest {
             .andExpect(jsonPath("$.title").value("Validation Error"))
             .andExpect(jsonPath("$.errorCode").value("E1004"))
             .andExpect(jsonPath("$.fieldErrors.username").isArray)
-            .andExpect(jsonPath("$.fieldErrors.username[0]").value("Username must be between 3 and 50 characters"))
+            .andExpect(
+                jsonPath("$.fieldErrors.username[0]")
+                    .value("Username must be between 3 and 50 characters")
+            )
 
         verifyNoInteractions(signupService)
     }
@@ -376,9 +396,10 @@ class AuthControllerTest {
     @Test
     fun `should return detailed validation errors for signup with invalid email`() {
         // Given
-        val invalidSignupRequest = validSignupRequest.copy(
-            email = "invalid-email" // Invalid email format
-        )
+        val invalidSignupRequest =
+            validSignupRequest.copy(
+                email = "invalid-email" // Invalid email format
+            )
 
         // When & Then
         mockMvc.perform(
@@ -399,10 +420,11 @@ class AuthControllerTest {
     @Test
     fun `should return detailed validation errors for signup with weak password`() {
         // Given
-        val invalidSignupRequest = validSignupRequest.copy(
-            password = "weak", // Too weak password
-            confirmPassword = "weak"
-        )
+        val invalidSignupRequest =
+            validSignupRequest.copy(
+                password = "weak", // Too weak password
+                confirmPassword = "weak"
+            )
 
         // When & Then
         mockMvc.perform(
@@ -415,10 +437,15 @@ class AuthControllerTest {
             .andExpect(jsonPath("$.title").value("Validation Error"))
             .andExpect(jsonPath("$.errorCode").value("E1004"))
             .andExpect(jsonPath("$.fieldErrors.password").isArray)
-            .andExpect(jsonPath("$.fieldErrors.password", containsInAnyOrder(
-                "Password must contain at least one lowercase letter, one uppercase letter, one digit, and one special character",
-                "Password must be at least 8 characters long"
-            )))
+            .andExpect(
+                jsonPath(
+                    "$.fieldErrors.password",
+                    containsInAnyOrder(
+                        "Password must contain at least one lowercase letter, one uppercase letter, one digit, and one special character",
+                        "Password must be at least 8 characters long"
+                    )
+                )
+            )
 
         verifyNoInteractions(signupService)
     }
@@ -426,14 +453,15 @@ class AuthControllerTest {
     @Test
     fun `should return detailed validation errors for signup with multiple invalid fields`() {
         // Given
-        val invalidSignupRequest = validSignupRequest.copy(
-            username = "", // Empty username
-            name = "", // Empty name
-            email = "invalid-email", // Invalid email
-            password = "weak", // Weak password
-            confirmPassword = "weak",
-            phoneNumber = "invalid-phone" // Invalid phone number
-        )
+        val invalidSignupRequest =
+            validSignupRequest.copy(
+                username = "", // Empty username
+                name = "", // Empty name
+                email = "invalid-email", // Invalid email
+                password = "weak", // Weak password
+                confirmPassword = "weak",
+                phoneNumber = "invalid-phone" // Invalid phone number
+            )
 
         // When & Then
         mockMvc.perform(
@@ -446,15 +474,38 @@ class AuthControllerTest {
             .andExpect(jsonPath("$.title").value("Validation Error"))
             .andExpect(jsonPath("$.errorCode").value("E1004"))
             .andExpect(jsonPath("$.fieldErrors.username").isArray)
-            .andExpect(jsonPath("$.fieldErrors.username[*]").value(org.hamcrest.Matchers.hasItem("Username is required")))
+            .andExpect(
+                jsonPath("$.fieldErrors.username[*]")
+                    .value(org.hamcrest.Matchers.hasItem("Username is required"))
+            )
             .andExpect(jsonPath("$.fieldErrors.name").isArray)
-            .andExpect(jsonPath("$.fieldErrors.name[*]").value(org.hamcrest.Matchers.hasItem("Name is required")))
+            .andExpect(
+                jsonPath("$.fieldErrors.name[*]")
+                    .value(org.hamcrest.Matchers.hasItem("Name is required"))
+            )
             .andExpect(jsonPath("$.fieldErrors.email").isArray)
-            .andExpect(jsonPath("$.fieldErrors.email[*]").value(org.hamcrest.Matchers.hasItem("Email should be valid")))
+            .andExpect(
+                jsonPath("$.fieldErrors.email[*]")
+                    .value(org.hamcrest.Matchers.hasItem("Email should be valid"))
+            )
             .andExpect(jsonPath("$.fieldErrors.password").isArray)
-            .andExpect(jsonPath("$.fieldErrors.password[*]").value(org.hamcrest.Matchers.hasItem("Password must be at least 8 characters long")))
+            .andExpect(
+                jsonPath("$.fieldErrors.password[*]")
+                    .value(
+                        org.hamcrest.Matchers.hasItem(
+                            "Password must be at least 8 characters long"
+                        )
+                    )
+            )
             .andExpect(jsonPath("$.fieldErrors.phoneNumber").isArray)
-            .andExpect(jsonPath("$.fieldErrors.phoneNumber[*]").value(org.hamcrest.Matchers.hasItem("Phone number must be in E.164 format (e.g., +82101234567)")))
+            .andExpect(
+                jsonPath("$.fieldErrors.phoneNumber[*]")
+                    .value(
+                        org.hamcrest.Matchers.hasItem(
+                            "Phone number must be in E.164 format (e.g., +82101234567)"
+                        )
+                    )
+            )
 
         verifyNoInteractions(signupService)
     }

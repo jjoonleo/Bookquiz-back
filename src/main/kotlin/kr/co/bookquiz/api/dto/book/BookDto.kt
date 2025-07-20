@@ -57,9 +57,9 @@ data class BookUpdateRequest(
     @field:NotNull(message = "Authors are required")
     @field:Size(min = 1, message = "At least one author is required")
     val authorNames: List<@NotBlank(message = "Author name cannot be blank") String> = emptyList(),
-    
+
     val translatorNames: List<@NotBlank(message = "Translator name cannot be blank") String> = emptyList(),
-    
+
     val illustratorNames: List<@NotBlank(message = "Illustrator name cannot be blank") String> = emptyList()
 )
 

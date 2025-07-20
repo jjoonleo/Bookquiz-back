@@ -65,7 +65,7 @@ class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException::class)
     fun handleValidationException(e: MethodArgumentNotValidException): ProblemDetail {
         val fieldErrors = mutableMapOf<String, List<String>>()
-        
+
         e.bindingResult.allErrors.forEach { error ->
             when (error) {
                 is FieldError -> {
@@ -87,7 +87,7 @@ class GlobalExceptionHandler {
     @ExceptionHandler(ConstraintViolationException::class)
     fun handleConstraintViolationException(e: ConstraintViolationException): ProblemDetail {
         val fieldErrors = mutableMapOf<String, List<String>>()
-        
+
         e.constraintViolations.forEach { violation ->
             val fieldName = violation.propertyPath.toString()
             val errorMessage = violation.message

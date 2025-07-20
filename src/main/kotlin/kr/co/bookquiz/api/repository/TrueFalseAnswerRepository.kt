@@ -6,5 +6,5 @@ import org.springframework.stereotype.Repository
 
 @Repository
 interface TrueFalseAnswerRepository : JpaRepository<TrueFalseAnswerEntity, Long> {
-  fun findByQuizId(quizId: Long): TrueFalseAnswerEntity?
+    fun findByQuizId(quizId: Long): TrueFalseAnswerEntity?
 }

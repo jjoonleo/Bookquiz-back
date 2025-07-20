@@ -6,5 +6,5 @@ import org.springframework.stereotype.Repository
 
 @Repository
 interface MultipleChoiceAnswerRepository : JpaRepository<MultipleChoiceAnswerEntity, Long> {
-  fun findByQuizId(quizId: Long): MultipleChoiceAnswerEntity?
+    fun findByQuizId(quizId: Long): MultipleChoiceAnswerEntity?
 }
