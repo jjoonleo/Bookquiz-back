@@ -2,106 +2,145 @@ package kr.co.bookquiz.api.service
 
 import kr.co.bookquiz.api.dto.quiz.*
 import kr.co.bookquiz.api.entity.*
-import kr.co.bookquiz.api.repository.*
-import kr.co.bookquiz.api.strategy.AnswerStrategyRegistry
+import kr.co.bookquiz.api.repository.BookRepository
+import kr.co.bookquiz.api.repository.QuizRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 @Service
 class QuizService(
-        private val quizRepo: QuizRepository,
-        private val mcRepo: MultipleChoiceAnswerRepository,
-        private val subjRepo: SubjectiveAnswerRepository,
-        private val tfRepo: TrueFalseAnswerRepository,
-        private val registry: AnswerStrategyRegistry
+        private val quizRepository: QuizRepository,
+        private val bookRepository: BookRepository
 ) {
+
+  @Transactional
+  fun createQuiz(createQuizDto: CreateQuizDto): QuizResponseDto {
+    val book =
+            bookRepository.findById(createQuizDto.bookId).orElseThrow {
+              IllegalArgumentException("No book found with id: ${createQuizDto.bookId}")
+            }
+
+    val quiz = createQuizDto.toEntity(book)
+    val savedQuiz = quizRepository.save(quiz)
+    return savedQuiz.toDto()
+  }
+
   @Transactional(readOnly = true)
-  fun evaluateQuizAnswer(
-          quizId: Long,
-          userAnswer: Any // MultipleChoiceAnswerData, SubjectiveAnswerData, or TrueFalseAnswerData
-  ): AnswerResult {
+  fun getQuiz(quizId: Long): QuizResponseDto {
     val quiz =
-            quizRepo.findById(quizId).orElseThrow {
+            quizRepository.findById(quizId).orElseThrow {
+              IllegalArgumentException("No quiz found with id: $quizId")
+            }
+    return quiz.toDto()
+  }
+
+  @Transactional
+  fun updateQuiz(quizId: Long, updateQuizDto: UpdateQuizDto): QuizResponseDto {
+    val existingQuiz =
+            quizRepository.findById(quizId).orElseThrow {
               IllegalArgumentException("No quiz found with id: $quizId")
             }
 
-    return when (quiz.questionType) {
-      "MULTIPLE_CHOICE" -> {
-        val correct = mcRepo.findByQuizId(quizId) ?: error("No MCQ answer found for quiz $quizId")
-        val userAnswerData = userAnswer as MultipleChoiceAnswerData
-        val correctData =
-                MultipleChoiceAnswerData(
-                        options = correct.options,
-                        correctIndex = correct.correctIndex,
-                        selectedIndex = userAnswerData.selectedIndex
-                )
-        val strat = registry.getStrategy<MultipleChoiceAnswerData>("MULTIPLE_CHOICE")
-        val valid = strat.validate(correctData, userAnswerData)
-        val score = if (valid) strat.score(correctData, userAnswerData) else 0.0
-        val feedback = strat.feedback(correctData, userAnswerData, score)
-        AnswerResult(valid && score == 1.0, score, feedback)
-      }
-      "SUBJECTIVE" -> {
-        val correct =
-                subjRepo.findByQuizId(quizId)
-                        ?: error("No subjective answer found for quiz $quizId")
-        val userAnswerData = userAnswer as SubjectiveAnswerData
-        val correctData =
-                SubjectiveAnswerData(
-                        possibleAnswers = correct.possibleAnswers,
-                        caseSensitive = correct.caseSensitive,
-                        maxWords = correct.maxWords,
-                        answer = userAnswerData.answer
-                )
-        val strat = registry.getStrategy<SubjectiveAnswerData>("SUBJECTIVE")
-        val valid = strat.validate(correctData, userAnswerData)
-        val score = if (valid) strat.score(correctData, userAnswerData) else 0.0
-        val feedback = strat.feedback(correctData, userAnswerData, score)
-        AnswerResult(valid && score == 1.0, score, feedback)
-      }
-      "TRUE_FALSE" -> {
-        val correct =
-                tfRepo.findByQuizId(quizId) ?: error("No True/False answer found for quiz $quizId")
-        val userAnswerData = userAnswer as TrueFalseAnswerData
-        val correctData =
-                TrueFalseAnswerData(
-                        correctAnswer = correct.correctAnswer,
-                        answer = userAnswerData.answer
-                )
-        val strat = registry.getStrategy<TrueFalseAnswerData>("TRUE_FALSE")
-        val valid = strat.validate(correctData, userAnswerData)
-        val score = if (valid) strat.score(correctData, userAnswerData) else 0.0
-        val feedback = strat.feedback(correctData, userAnswerData, score)
-        AnswerResult(valid && score == 1.0, score, feedback)
-      }
-      else -> throw IllegalArgumentException("Unknown question type: ${quiz.questionType}")
+    val updatedQuiz = updateQuizDto.updateEntity(existingQuiz)
+    val savedQuiz = quizRepository.save(updatedQuiz)
+    return savedQuiz.toDto()
+  }
+
+  @Transactional
+  fun deleteQuiz(quizId: Long) {
+    if (!quizRepository.existsById(quizId)) {
+      throw IllegalArgumentException("No quiz found with id: $quizId")
     }
-  }
-
-  @Transactional(readOnly = true)
-  fun getQuiz(quizId: Long): Quiz {
-    return quizRepo.findById(quizId).orElseThrow {
-      IllegalArgumentException("No quiz found with id: $quizId")
-    }
-  }
-
-  @Transactional(readOnly = true)
-  fun getMultipleChoiceAnswer(quizId: Long): MultipleChoiceAnswerEntity? {
-    return mcRepo.findByQuizId(quizId)
-  }
-
-  @Transactional(readOnly = true)
-  fun getSubjectiveAnswer(quizId: Long): SubjectiveAnswerEntity? {
-    return subjRepo.findByQuizId(quizId)
-  }
-
-  @Transactional(readOnly = true)
-  fun getTrueFalseAnswer(quizId: Long): TrueFalseAnswerEntity? {
-    return tfRepo.findByQuizId(quizId)
+    quizRepository.deleteById(quizId)
   }
 
   @Transactional(readOnly = true)
   fun getQuizzesByBookId(bookId: Long): List<QuizResponseDto> {
-    return quizRepo.findByBookId(bookId).map { QuizResponseDto.from(it) }
+    return quizRepository.findByBookId(bookId).map { it.toDto() }
+  }
+
+  @Transactional(readOnly = true)
+  fun getQuizzesByTitle(title: String): List<QuizResponseDto> {
+    return quizRepository.findByTitleContaining(title).map { it.toDto() }
+  }
+
+  @Transactional(readOnly = true)
+  fun getQuizzesWithFilters(filter: QuizFilterDto): List<QuizResponseDto> {
+    val entityClass =
+            when (filter.type) {
+              "MULTIPLE_CHOICE" -> MultipleChoiceQuiz::class.java
+              "SUBJECTIVE" -> SubjectiveQuiz::class.java
+              "TRUE_FALSE" -> TrueFalseQuiz::class.java
+              null -> null
+              else -> null
+            }
+
+    return quizRepository.findQuizzesWithFilters(
+                    bookId = filter.bookId,
+                    title = filter.title,
+                    type = filter.type,
+                    entityClass = entityClass
+            )
+            .map { it.toDto() }
+  }
+
+  @Transactional(readOnly = true)
+  fun getQuizzesByBookIdAndType(bookId: Long, type: String): List<QuizResponseDto> {
+    val entityClass =
+            when (type) {
+              "MULTIPLE_CHOICE" -> MultipleChoiceQuiz::class.java
+              "SUBJECTIVE" -> SubjectiveQuiz::class.java
+              "TRUE_FALSE" -> TrueFalseQuiz::class.java
+              else -> throw IllegalArgumentException("Unknown quiz type: $type")
+            }
+
+    return quizRepository.findByBookIdAndType(bookId, entityClass).map { it.toDto() }
+  }
+
+  @Transactional(readOnly = true)
+  fun evaluateQuizAnswer(quizId: Long, userAnswer: Any): AnswerResult {
+    val quiz =
+            quizRepository.findById(quizId).orElseThrow {
+              IllegalArgumentException("No quiz found with id: $quizId")
+            }
+
+    return when (quiz) {
+      is MultipleChoiceQuiz -> {
+        val userAnswerInt =
+                userAnswer as? Int
+                        ?: throw IllegalArgumentException(
+                                "Invalid answer type for multiple choice quiz"
+                        )
+        val isCorrect = userAnswerInt == quiz.answer
+        val score = if (isCorrect) 1.0 else 0.0
+        val feedback =
+                if (isCorrect) "Correct!"
+                else "Incorrect. The correct answer was option ${quiz.answer + 1}."
+        AnswerResult(isCorrect, score, feedback)
+      }
+      is SubjectiveQuiz -> {
+        val userAnswerString =
+                userAnswer as? String
+                        ?: throw IllegalArgumentException("Invalid answer type for subjective quiz")
+        val isCorrect = userAnswerString.trim().equals(quiz.answer.trim(), ignoreCase = true)
+        val score = if (isCorrect) 1.0 else 0.0
+        val feedback =
+                if (isCorrect) "Correct!" else "Incorrect. The correct answer was: ${quiz.answer}"
+        AnswerResult(isCorrect, score, feedback)
+      }
+      is TrueFalseQuiz -> {
+        val userAnswerBoolean =
+                userAnswer as? Boolean
+                        ?: throw IllegalArgumentException("Invalid answer type for true/false quiz")
+        val isCorrect = userAnswerBoolean == quiz.answer
+        val score = if (isCorrect) 1.0 else 0.0
+        val feedback =
+                if (isCorrect) "Correct!" else "Incorrect. The correct answer was: ${quiz.answer}"
+        AnswerResult(isCorrect, score, feedback)
+      }
+      else -> throw IllegalArgumentException("Unknown quiz type: ${quiz.getQuizType()}")
+    }
   }
 }
+
+data class AnswerResult(val isCorrect: Boolean, val score: Double, val feedback: String)
