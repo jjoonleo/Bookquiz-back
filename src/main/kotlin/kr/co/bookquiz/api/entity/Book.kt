@@ -15,31 +15,32 @@ import jakarta.persistence.Table
 @Table(name = "books")
 @JsonIgnoreProperties("hibernateLazyInitializer", "handler")
 data class Book(
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY) val id: Long? = null,
-    @Column(nullable = false, length = 255) val title: String,
-    @Column(nullable = false, length = 30, unique = true) val isbn: String,
-    @Column(nullable = false, length = 255) val publisher: String,
-    @Column(name = "quiz_price", nullable = false) val quizPrice: Int,
-    @Column(name = "thumbnail", nullable = true, length = 1000) val thumbnail: String?,
-    @ManyToMany
-    @JoinTable(
-        name = "book_author",
-        joinColumns = [JoinColumn(name = "book_id")],
-        inverseJoinColumns = [JoinColumn(name = "person_id")]
-    )
-    val authors: List<Person> = mutableListOf(),
-    @ManyToMany
-    @JoinTable(
-        name = "book_translator",
-        joinColumns = [JoinColumn(name = "book_id")],
-        inverseJoinColumns = [JoinColumn(name = "person_id")]
-    )
-    val translators: List<Person> = mutableListOf(),
-    @ManyToMany
-    @JoinTable(
-        name = "book_illustrator",
-        joinColumns = [JoinColumn(name = "book_id")],
-        inverseJoinColumns = [JoinColumn(name = "person_id")],
-    )
-    val illustrators: List<Person> = mutableListOf()
+        @Id @GeneratedValue(strategy = GenerationType.IDENTITY) val id: Long? = null,
+        @Column(nullable = false, length = 255) val title: String,
+        @Column(nullable = false, length = 30, unique = true) val isbn: String,
+        @Column(nullable = false, length = 255) val publisher: String,
+        @Column(name = "quiz_price", nullable = false) val quizPrice: Int,
+        @Column(name = "thumbnail", nullable = true, length = 1000) val thumbnail: String?,
+        @Column(name = "max_attempt", nullable = false) val maxAttempt: Int = 3,
+        @ManyToMany
+        @JoinTable(
+                name = "book_author",
+                joinColumns = [JoinColumn(name = "book_id")],
+                inverseJoinColumns = [JoinColumn(name = "person_id")]
+        )
+        val authors: List<Person> = mutableListOf(),
+        @ManyToMany
+        @JoinTable(
+                name = "book_translator",
+                joinColumns = [JoinColumn(name = "book_id")],
+                inverseJoinColumns = [JoinColumn(name = "person_id")]
+        )
+        val translators: List<Person> = mutableListOf(),
+        @ManyToMany
+        @JoinTable(
+                name = "book_illustrator",
+                joinColumns = [JoinColumn(name = "book_id")],
+                inverseJoinColumns = [JoinColumn(name = "person_id")],
+        )
+        val illustrators: List<Person> = mutableListOf()
 )

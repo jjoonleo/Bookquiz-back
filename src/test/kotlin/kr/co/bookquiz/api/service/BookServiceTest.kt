@@ -1,5 +1,6 @@
 package kr.co.bookquiz.api.service
 
+import java.util.Optional
 import kr.co.bookquiz.api.api.exception.EntityNotFoundException
 import kr.co.bookquiz.api.dto.book.BookCreateRequest
 import kr.co.bookquiz.api.dto.book.BookUpdateRequest
@@ -20,7 +21,6 @@ import org.mockito.Mockito.mock
 import org.mockito.Mockito.reset
 import org.mockito.Mockito.times
 import org.mockito.junit.jupiter.MockitoExtension
-import java.util.Optional
 
 @ExtendWith(MockitoExtension::class)
 class BookServiceTest {
@@ -51,52 +51,55 @@ class BookServiceTest {
         testIllustrator = Person(id = 3L, name = "Test Illustrator")
 
         testBook =
-            Book(
-                id = 1L,
-                title = "Test Book",
-                isbn = "978-0123456789",
-                publisher = "Test Publisher",
-                quizPrice = 1000,
-                thumbnail = "https://example.com/thumb.jpg",
-                authors = listOf(testAuthor),
-                translators = listOf(testTranslator),
-                illustrators = listOf(testIllustrator)
-            )
+                Book(
+                        id = 1L,
+                        title = "Test Book",
+                        isbn = "978-0123456789",
+                        publisher = "Test Publisher",
+                        quizPrice = 1000,
+                        thumbnail = "https://example.com/thumb.jpg",
+                        maxAttempt = 3,
+                        authors = listOf(testAuthor),
+                        translators = listOf(testTranslator),
+                        illustrators = listOf(testIllustrator)
+                )
 
         testBookCreateRequest =
-            BookCreateRequest(
-                title = "Test Book",
-                isbn = "978-0123456789",
-                publisher = "Test Publisher",
-                quizPrice = 1000,
-                thumbnail = "https://example.com/thumb.jpg",
-                authorNames = listOf("Test Author"),
-                translatorNames = listOf("Test Translator"),
-                illustratorNames = listOf("Test Illustrator")
-            )
+                BookCreateRequest(
+                        title = "Test Book",
+                        isbn = "978-0123456789",
+                        publisher = "Test Publisher",
+                        quizPrice = 1000,
+                        thumbnail = "https://example.com/thumb.jpg",
+                        maxAttempt = 3,
+                        authorNames = listOf("Test Author"),
+                        translatorNames = listOf("Test Translator"),
+                        illustratorNames = listOf("Test Illustrator")
+                )
 
         testBookUpdateRequest =
-            BookUpdateRequest(
-                title = "Updated Test Book",
-                isbn = "978-0123456789",
-                publisher = "Test Publisher",
-                quizPrice = 1000,
-                thumbnail = "https://example.com/thumb.jpg",
-                authorNames = listOf("Test Author"),
-                translatorNames = listOf("Test Translator"),
-                illustratorNames = listOf("Test Illustrator")
-            )
+                BookUpdateRequest(
+                        title = "Updated Test Book",
+                        isbn = "978-0123456789",
+                        publisher = "Test Publisher",
+                        quizPrice = 1000,
+                        thumbnail = "https://example.com/thumb.jpg",
+                        maxAttempt = 3,
+                        authorNames = listOf("Test Author"),
+                        translatorNames = listOf("Test Translator"),
+                        illustratorNames = listOf("Test Illustrator")
+                )
     }
 
     @Test
     fun `should create book successfully`() {
         // Given
         given(personService.findOrCreatePersons(listOf("Test Author")))
-            .willReturn(listOf(testAuthor))
+                .willReturn(listOf(testAuthor))
         given(personService.findOrCreatePersons(listOf("Test Translator")))
-            .willReturn(listOf(testTranslator))
+                .willReturn(listOf(testTranslator))
         given(personService.findOrCreatePersons(listOf("Test Illustrator")))
-            .willReturn(listOf(testIllustrator))
+                .willReturn(listOf(testIllustrator))
         given(bookRepository.save(any(Book::class.java))).willReturn(testBook)
 
         // When
@@ -118,13 +121,13 @@ class BookServiceTest {
         // Given
         val newPerson = Person(id = 2L, name = "New Person")
         val createRequestWithNewPerson =
-            testBookCreateRequest.copy(authorNames = listOf("New Person"))
+                testBookCreateRequest.copy(authorNames = listOf("New Person"))
 
         given(personService.findOrCreatePersons(listOf("New Person"))).willReturn(listOf(newPerson))
         given(personService.findOrCreatePersons(listOf("Test Translator")))
-            .willReturn(listOf(testTranslator))
+                .willReturn(listOf(testTranslator))
         given(personService.findOrCreatePersons(listOf("Test Illustrator")))
-            .willReturn(listOf(testIllustrator))
+                .willReturn(listOf(testIllustrator))
         given(bookRepository.save(any(Book::class.java))).willReturn(testBook)
 
         // When
@@ -168,11 +171,11 @@ class BookServiceTest {
 
         given(bookRepository.findById(1L)).willReturn(Optional.of(testBook))
         given(personService.findOrCreatePersons(listOf("Test Author")))
-            .willReturn(listOf(testAuthor))
+                .willReturn(listOf(testAuthor))
         given(personService.findOrCreatePersons(listOf("Test Translator")))
-            .willReturn(listOf(testTranslator))
+                .willReturn(listOf(testTranslator))
         given(personService.findOrCreatePersons(listOf("Test Illustrator")))
-            .willReturn(listOf(testIllustrator))
+                .willReturn(listOf(testIllustrator))
         given(bookRepository.save(any(Book::class.java))).willReturn(updatedBookData)
 
         // When
