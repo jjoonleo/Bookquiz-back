@@ -1,12 +1,14 @@
 package kr.co.bookquiz.api.service
 
 import java.time.LocalDateTime
-import kr.co.bookquiz.api.dto.useranswer.CreateUserAnswerDto
-import kr.co.bookquiz.api.dto.useranswer.UpdateUserAnswerDto
-import kr.co.bookquiz.api.dto.useranswer.UserAnswerResponseDto
+import kr.co.bookquiz.api.api.exception.ApiException
+import kr.co.bookquiz.api.api.exception.ErrorCode.DUPLICATE_ATTEMPT
+import kr.co.bookquiz.api.dto.useranswer.*
 import kr.co.bookquiz.api.repository.AnswerRepository
 import kr.co.bookquiz.api.repository.QuizRepository
 import kr.co.bookquiz.api.repository.UserRepository
+import org.hibernate.exception.ConstraintViolationException
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -35,10 +37,22 @@ class UserAnswerService(
     }
 
     val isCorrect = quiz.isCorrectAnswer(createDto.userAnswer)
-    val attemptNumber = getNextAttemptNumber(username, createDto.quizId)
+    val attemptNumber = createDto.attemptNumber ?: getNextAttemptNumber(username, createDto.quizId)
+
     val answeredAt = LocalDateTime.now()
     val userAnswerEntity = createDto.toEntity(user, quiz, isCorrect, attemptNumber, answeredAt)
-    return answerRepository.save(userAnswerEntity).toDto()
+    try {
+      return answerRepository.save(userAnswerEntity).toDto()
+    } catch (ex: DataIntegrityViolationException) {
+      // Check if it's a unique constraint violation on user_id, quiz_id, attempt_number
+      if (isUserQuizAttemptConstraintViolation(ex)) {
+        throw ApiException(
+                DUPLICATE_ATTEMPT,
+                "Answer for attemptNumber $attemptNumber already exists for this quiz and user."
+        )
+      }
+      throw ex
+    }
   }
 
   @Transactional
@@ -54,37 +68,37 @@ class UserAnswerService(
 
   @Transactional(readOnly = true)
   fun getUserAnswersByQuiz(username: String, quizId: Long): List<UserAnswerResponseDto> {
-    return answerRepository.findByUserIdAndQuizIdOrderByAttemptNumberDesc(username, quizId).map {
-      it.toDto()
-    }
+    return answerRepository.findByUserUsernameAndQuizIdOrderByAttemptNumberDesc(username, quizId)
+            .map { it.toDto() }
   }
 
   @Transactional(readOnly = true)
   fun getUserAnswersByUser(username: String): List<UserAnswerResponseDto> {
-    return answerRepository.findByUserId(username).map { it.toDto() }
+    return answerRepository.findByUserUsername(username).map { it.toDto() }
   }
 
   @Transactional(readOnly = true)
   fun getLatestAnswer(username: String, quizId: Long): UserAnswerResponseDto? {
     return answerRepository
-            .findByUserIdAndQuizIdOrderByAttemptNumberDesc(username, quizId)
+            .findByUserUsernameAndQuizIdOrderByAttemptNumberDesc(username, quizId)
             .firstOrNull()
             ?.toDto()
   }
 
   @Transactional(readOnly = true)
   fun getAttemptCount(username: String, quizId: Long): Long {
-    return answerRepository.countByUserIdAndQuizId(username, quizId)
+    return answerRepository.countByUserUsernameAndQuizId(username, quizId)
   }
 
   @Transactional(readOnly = true)
   fun hasCorrectAnswer(username: String, quizId: Long): Boolean {
-    return answerRepository.findByUserIdAndQuizId(username, quizId).any { it.isCorrect }
+    return answerRepository.findByUserUsernameAndQuizId(username, quizId).any { it.isCorrect }
   }
 
   @Transactional(readOnly = true)
   fun getUserQuizSummary(username: String, quizId: Long): UserQuizSummaryDto? {
-    val answers = answerRepository.findByUserIdAndQuizIdOrderByAttemptNumberDesc(username, quizId)
+    val answers =
+            answerRepository.findByUserUsernameAndQuizIdOrderByAttemptNumberDesc(username, quizId)
     if (answers.isEmpty()) return null
 
     val totalAttempts = answers.size
@@ -109,7 +123,7 @@ class UserAnswerService(
 
   @Transactional(readOnly = true)
   fun getUserAnswerStats(username: String): UserAnswerStatsDto {
-    val allAnswers = answerRepository.findByUserId(username)
+    val allAnswers = answerRepository.findByUserUsername(username)
     val totalQuizzesAttempted = allAnswers.map { it.quiz.id }.distinct().size
     val totalAttempts = allAnswers.size
     val correctAnswers = allAnswers.count { it.isCorrect }
@@ -128,7 +142,20 @@ class UserAnswerService(
   }
 
   private fun getNextAttemptNumber(username: String, quizId: Long): Int {
-    val attemptCount = answerRepository.countByUserIdAndQuizId(username, quizId)
+    val attemptCount = answerRepository.countByUserUsernameAndQuizId(username, quizId)
     return (attemptCount + 1).toInt()
+  }
+
+  private fun isUserQuizAttemptConstraintViolation(ex: DataIntegrityViolationException): Boolean {
+    val rootCause = ex.rootCause
+    return when {
+      rootCause is ConstraintViolationException -> {
+        val constraintName = rootCause.constraintName
+        constraintName == "user_quiz_attempt_unique"
+      }
+      // Fallback: check error message if constraint name is null
+      ex.message?.contains("user_quiz_attempt_unique") == true -> true
+      else -> false
+    }
   }
 }
