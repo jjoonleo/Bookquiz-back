@@ -1,10 +1,8 @@
 package kr.co.bookquiz.api.entity
 
-import jakarta.persistence.CollectionTable
 import jakarta.persistence.Column
 import jakarta.persistence.DiscriminatorColumn
 import jakarta.persistence.DiscriminatorValue
-import jakarta.persistence.ElementCollection
 import jakarta.persistence.Entity
 import jakarta.persistence.FetchType
 import jakarta.persistence.GeneratedValue
@@ -14,6 +12,8 @@ import jakarta.persistence.Inheritance
 import jakarta.persistence.InheritanceType
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
+import jakarta.persistence.OneToMany
+import jakarta.persistence.Transient
 import kr.co.bookquiz.api.dto.quiz.MultipleChoiceQuizResponseDto
 import kr.co.bookquiz.api.dto.quiz.QuizResponseDto
 import kr.co.bookquiz.api.dto.quiz.SubjectiveQuizResponseDto
@@ -23,7 +23,7 @@ import java.time.LocalDateTime
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
 @DiscriminatorColumn(name = "quiz_type")
-abstract class Quiz(
+abstract class Quiz<T>(
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY) open val id: Long? = null,
     @Column(nullable = false) open val title: String = "",
     @Column open val explanation: String? = null,
@@ -34,11 +34,21 @@ abstract class Quiz(
     @Column(nullable = false) open val createdAt: LocalDateTime = LocalDateTime.now()
 ) {
     // Declare answer as abstract property in class body
-    abstract val answer: Any
+    @get:Transient abstract val answer: T
 
     abstract fun getQuizType(): String
     abstract fun toDto(): QuizResponseDto
 }
+
+@Entity
+class MultipleChoiceOption(
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY) val id: Long? = null,
+    @Column(nullable = false) val optionText: String,
+    @Column(nullable = false) val optionIndex: Int,
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "quiz_id", nullable = false)
+    val quiz: MultipleChoiceQuiz
+)
 
 @Entity
 @DiscriminatorValue("MULTIPLE_CHOICE")
@@ -49,12 +59,15 @@ class MultipleChoiceQuiz(
     explanation: String? = null,
     hint: String? = null,
     book: Book,
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "quiz_options", joinColumns = [JoinColumn(name = "quiz_id")])
-    @Column(name = "option_text")
-    val options: List<String> = emptyList(),
+    @OneToMany(
+        mappedBy = "quiz",
+        fetch = FetchType.EAGER,
+        cascade = [jakarta.persistence.CascadeType.ALL],
+        orphanRemoval = true
+    )
+    val options: MutableList<MultipleChoiceOption> = mutableListOf(),
     createdAt: LocalDateTime = LocalDateTime.now()
-) : Quiz(id, title, explanation, hint, book, createdAt) {
+) : Quiz<Int>(id, title, explanation, hint, book, createdAt) {
 
     override fun getQuizType(): String = "MULTIPLE_CHOICE"
 
@@ -67,7 +80,7 @@ class MultipleChoiceQuiz(
             bookId = book.id ?: 0L,
             createdAt = createdAt,
             answer = answer,
-            options = options
+            options = options.sortedBy { it.optionIndex }.map { it.optionText }
         )
 
     fun copy(
@@ -77,16 +90,43 @@ class MultipleChoiceQuiz(
         hint: String? = null,
         options: List<String>? = null
     ): MultipleChoiceQuiz {
-        return MultipleChoiceQuiz(
-            id = this.id,
-            title = title ?: this.title,
-            answer = answer ?: this.answer,
-            explanation = explanation ?: this.explanation,
-            hint = hint ?: this.hint,
-            book = this.book,
-            options = options ?: this.options,
-            createdAt = this.createdAt
-        )
+        val newQuiz =
+            MultipleChoiceQuiz(
+                id = this.id,
+                title = title ?: this.title,
+                answer = answer ?: this.answer,
+                explanation = explanation ?: this.explanation,
+                hint = hint ?: this.hint,
+                book = this.book,
+                createdAt = this.createdAt
+            )
+
+        if (options != null) {
+            newQuiz.options.clear()
+            options.forEachIndexed { index, optionText ->
+                newQuiz.options.add(
+                    MultipleChoiceOption(
+                        optionText = optionText,
+                        optionIndex = index,
+                        quiz = newQuiz
+                    )
+                )
+            }
+        } else {
+            // Copy existing options
+            this.options.forEach { option ->
+                newQuiz.options.add(
+                    MultipleChoiceOption(
+                        id = option.id,
+                        optionText = option.optionText,
+                        optionIndex = option.optionIndex,
+                        quiz = newQuiz
+                    )
+                )
+            }
+        }
+
+        return newQuiz
     }
 }
 
@@ -100,7 +140,7 @@ class SubjectiveQuiz(
     hint: String? = null,
     book: Book,
     createdAt: LocalDateTime = LocalDateTime.now()
-) : Quiz(id, title, explanation, hint, book, createdAt) {
+) : Quiz<String>(id, title, explanation, hint, book, createdAt) {
 
     @Column(nullable = false, columnDefinition = "TEXT") override val answer: String = answer
 
@@ -145,7 +185,7 @@ class TrueFalseQuiz(
     hint: String? = null,
     book: Book,
     createdAt: LocalDateTime = LocalDateTime.now()
-) : Quiz(id, title, explanation, hint, book, createdAt) {
+) : Quiz<Boolean>(id, title, explanation, hint, book, createdAt) {
 
     @Column(nullable = false) override val answer: Boolean = answer
 

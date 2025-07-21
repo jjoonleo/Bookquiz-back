@@ -7,11 +7,11 @@ import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
 
 @Repository
-interface QuizRepository : JpaRepository<Quiz, Long> {
+interface QuizRepository : JpaRepository<Quiz<*>, Long> {
 
-    fun findByBookId(bookId: Long): List<Quiz>
+    fun findByBookId(bookId: Long): List<Quiz<*>>
 
-    fun findByTitleContaining(title: String): List<Quiz>
+    fun findByTitleContaining(title: String): List<Quiz<*>>
 
     @Query(
         "SELECT q FROM Quiz q WHERE " +
@@ -23,12 +23,12 @@ interface QuizRepository : JpaRepository<Quiz, Long> {
         @Param("bookId") bookId: Long?,
         @Param("title") title: String?,
         @Param("type") type: String?,
-        @Param("entityClass") entityClass: Class<out Quiz>?
-    ): List<Quiz>
+        @Param("entityClass") entityClass: Class<out Quiz<*>>?
+    ): List<Quiz<*>>
 
     @Query("SELECT q FROM Quiz q WHERE q.book.id = :bookId AND TYPE(q) = :quizType")
     fun findByBookIdAndType(
         @Param("bookId") bookId: Long,
-        @Param("quizType") quizType: Class<out Quiz>
-    ): List<Quiz>
+        @Param("quizType") quizType: Class<out Quiz<*>>
+    ): List<Quiz<*>>
 }

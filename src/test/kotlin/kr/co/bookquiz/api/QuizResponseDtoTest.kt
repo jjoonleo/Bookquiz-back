@@ -29,10 +29,32 @@ class QuizResponseDtoTest {
                 title = "Test Quiz",
                 answer = 0,
                 explanation = "Test explanation",
-                options = listOf("A", "B", "C"),
                 book = book,
                 createdAt = LocalDateTime.of(2024, 1, 15, 10, 30, 0)
             )
+
+        // Add options
+        quiz.options.add(
+            kr.co.bookquiz.api.entity.MultipleChoiceOption(
+                optionText = "A",
+                optionIndex = 0,
+                quiz = quiz
+            )
+        )
+        quiz.options.add(
+            kr.co.bookquiz.api.entity.MultipleChoiceOption(
+                optionText = "B",
+                optionIndex = 1,
+                quiz = quiz
+            )
+        )
+        quiz.options.add(
+            kr.co.bookquiz.api.entity.MultipleChoiceOption(
+                optionText = "C",
+                optionIndex = 2,
+                quiz = quiz
+            )
+        )
 
         // When
         val dto = quiz.toDto()

@@ -46,13 +46,30 @@ class QuizControllerTest {
         val bookId = 1L
         val quizzes =
             listOf(
-                MultipleChoiceQuiz(
-                    id = 1L,
-                    title = "Quiz 1",
-                    answer = 0,
-                    options = listOf("A", "B", "C"),
-                    book = mockBook
-                ),
+                MultipleChoiceQuiz(id = 1L, title = "Quiz 1", answer = 0, book = mockBook)
+                    .apply {
+                        options.add(
+                            kr.co.bookquiz.api.entity.MultipleChoiceOption(
+                                optionText = "A",
+                                optionIndex = 0,
+                                quiz = this
+                            )
+                        )
+                        options.add(
+                            kr.co.bookquiz.api.entity.MultipleChoiceOption(
+                                optionText = "B",
+                                optionIndex = 1,
+                                quiz = this
+                            )
+                        )
+                        options.add(
+                            kr.co.bookquiz.api.entity.MultipleChoiceOption(
+                                optionText = "C",
+                                optionIndex = 2,
+                                quiz = this
+                            )
+                        )
+                    },
                 SubjectiveQuiz(
                     id = 2L,
                     title = "Quiz 2",

@@ -22,7 +22,9 @@ abstract class CreateQuizDto {
     abstract val hint: String?
     abstract val bookId: Long
 
-    abstract fun toEntity(book: kr.co.bookquiz.api.entity.Book): kr.co.bookquiz.api.entity.Quiz
+    abstract fun toEntity(
+        book: kr.co.bookquiz.api.entity.Book
+    ): kr.co.bookquiz.api.entity.Quiz<*>
 }
 
 data class CreateMultipleChoiceQuizDto(
@@ -36,15 +38,29 @@ data class CreateMultipleChoiceQuizDto(
 ) : CreateQuizDto() {
     override fun toEntity(
         book: kr.co.bookquiz.api.entity.Book
-    ): kr.co.bookquiz.api.entity.Quiz =
-        kr.co.bookquiz.api.entity.MultipleChoiceQuiz(
-            title = title,
-            answer = answer,
-            explanation = explanation,
-            hint = hint,
-            book = book,
-            options = options
-        )
+    ): kr.co.bookquiz.api.entity.Quiz<*> {
+        val quiz =
+            kr.co.bookquiz.api.entity.MultipleChoiceQuiz(
+                title = title,
+                answer = answer,
+                explanation = explanation,
+                hint = hint,
+                book = book
+            )
+
+        // Add options with indices
+        options.forEachIndexed { index, optionText ->
+            quiz.options.add(
+                kr.co.bookquiz.api.entity.MultipleChoiceOption(
+                    optionText = optionText,
+                    optionIndex = index,
+                    quiz = quiz
+                )
+            )
+        }
+
+        return quiz
+    }
 }
 
 data class CreateSubjectiveQuizDto(
@@ -57,7 +73,7 @@ data class CreateSubjectiveQuizDto(
 ) : CreateQuizDto() {
     override fun toEntity(
         book: kr.co.bookquiz.api.entity.Book
-    ): kr.co.bookquiz.api.entity.Quiz =
+    ): kr.co.bookquiz.api.entity.Quiz<*> =
         kr.co.bookquiz.api.entity.SubjectiveQuiz(
             title = title,
             answer = answer,
@@ -77,7 +93,7 @@ data class CreateTrueFalseQuizDto(
 ) : CreateQuizDto() {
     override fun toEntity(
         book: kr.co.bookquiz.api.entity.Book
-    ): kr.co.bookquiz.api.entity.Quiz =
+    ): kr.co.bookquiz.api.entity.Quiz<*> =
         kr.co.bookquiz.api.entity.TrueFalseQuiz(
             title = title,
             answer = answer,
@@ -100,7 +116,7 @@ abstract class UpdateQuizDto {
     abstract val explanation: String?
     abstract val hint: String?
 
-    abstract fun updateEntity(existingQuiz: Quiz): Quiz
+    abstract fun updateEntity(existingQuiz: Quiz<*>): Quiz<*>
 }
 
 data class UpdateMultipleChoiceQuizDto(
@@ -111,7 +127,7 @@ data class UpdateMultipleChoiceQuizDto(
     val answer: Int? = null,
     val options: List<String>? = null
 ) : UpdateQuizDto() {
-    override fun updateEntity(existingQuiz: Quiz): Quiz {
+    override fun updateEntity(existingQuiz: Quiz<*>): Quiz<*> {
         if (existingQuiz !is MultipleChoiceQuiz) {
             throw IllegalArgumentException("Quiz type mismatch for update")
         }
@@ -120,7 +136,10 @@ data class UpdateMultipleChoiceQuizDto(
             answer = answer ?: existingQuiz.answer,
             explanation = explanation,
             hint = hint,
-            options = options ?: existingQuiz.options
+            options = options
+                ?: existingQuiz.options.sortedBy { it.optionIndex }.map {
+                    it.optionText
+                }
         )
     }
 }
@@ -132,7 +151,7 @@ data class UpdateSubjectiveQuizDto(
     override val hint: String? = null,
     val answer: String? = null
 ) : UpdateQuizDto() {
-    override fun updateEntity(existingQuiz: Quiz): Quiz {
+    override fun updateEntity(existingQuiz: Quiz<*>): Quiz<*> {
         if (existingQuiz !is SubjectiveQuiz) {
             throw IllegalArgumentException("Quiz type mismatch for update")
         }
@@ -152,7 +171,7 @@ data class UpdateTrueFalseQuizDto(
     override val hint: String? = null,
     val answer: Boolean? = null
 ) : UpdateQuizDto() {
-    override fun updateEntity(existingQuiz: Quiz): Quiz {
+    override fun updateEntity(existingQuiz: Quiz<*>): Quiz<*> {
         if (existingQuiz !is TrueFalseQuiz) {
             throw IllegalArgumentException("Quiz type mismatch for update")
         }

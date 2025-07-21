@@ -49,13 +49,30 @@ class QuizServiceTest {
         // Given
         val quizId = 1L
         val quiz =
-            MultipleChoiceQuiz(
-                id = quizId,
-                title = "Test MCQ",
-                answer = 1,
-                options = listOf("Option A", "Option B", "Option C"),
-                book = mockBook
-            )
+            MultipleChoiceQuiz(id = quizId, title = "Test MCQ", answer = 1, book = mockBook)
+                .apply {
+                    options.add(
+                        kr.co.bookquiz.api.entity.MultipleChoiceOption(
+                            optionText = "Option A",
+                            optionIndex = 0,
+                            quiz = this
+                        )
+                    )
+                    options.add(
+                        kr.co.bookquiz.api.entity.MultipleChoiceOption(
+                            optionText = "Option B",
+                            optionIndex = 1,
+                            quiz = this
+                        )
+                    )
+                    options.add(
+                        kr.co.bookquiz.api.entity.MultipleChoiceOption(
+                            optionText = "Option C",
+                            optionIndex = 2,
+                            quiz = this
+                        )
+                    )
+                }
         val userAnswer = 1
 
         `when`(quizRepo.findById(quizId)).thenReturn(java.util.Optional.of(quiz))
@@ -74,13 +91,30 @@ class QuizServiceTest {
         // Given
         val quizId = 1L
         val quiz =
-            MultipleChoiceQuiz(
-                id = quizId,
-                title = "Test MCQ",
-                answer = 1,
-                options = listOf("Option A", "Option B", "Option C"),
-                book = mockBook
-            )
+            MultipleChoiceQuiz(id = quizId, title = "Test MCQ", answer = 1, book = mockBook)
+                .apply {
+                    options.add(
+                        kr.co.bookquiz.api.entity.MultipleChoiceOption(
+                            optionText = "Option A",
+                            optionIndex = 0,
+                            quiz = this
+                        )
+                    )
+                    options.add(
+                        kr.co.bookquiz.api.entity.MultipleChoiceOption(
+                            optionText = "Option B",
+                            optionIndex = 1,
+                            quiz = this
+                        )
+                    )
+                    options.add(
+                        kr.co.bookquiz.api.entity.MultipleChoiceOption(
+                            optionText = "Option C",
+                            optionIndex = 2,
+                            quiz = this
+                        )
+                    )
+                }
         val userAnswer = 0
 
         `when`(quizRepo.findById(quizId)).thenReturn(java.util.Optional.of(quiz))
@@ -141,7 +175,7 @@ class QuizServiceTest {
         // Given
         val quizId = 1L
         val quiz =
-            object : Quiz(id = quizId, title = "Test Unknown", book = mockBook) {
+            object : Quiz<Any>(id = quizId, title = "Test Unknown", book = mockBook) {
                 override val answer: Any = "unknown"
                 override fun getQuizType(): String = "UNKNOWN"
                 override fun toDto(): QuizResponseDto = throw NotImplementedError()
@@ -176,13 +210,30 @@ class QuizServiceTest {
         val bookId = 1L
         val quizzes =
             listOf(
-                MultipleChoiceQuiz(
-                    id = 1L,
-                    title = "Quiz 1",
-                    answer = 0,
-                    options = listOf("A", "B", "C"),
-                    book = mockBook
-                ),
+                MultipleChoiceQuiz(id = 1L, title = "Quiz 1", answer = 0, book = mockBook)
+                    .apply {
+                        options.add(
+                            kr.co.bookquiz.api.entity.MultipleChoiceOption(
+                                optionText = "A",
+                                optionIndex = 0,
+                                quiz = this
+                            )
+                        )
+                        options.add(
+                            kr.co.bookquiz.api.entity.MultipleChoiceOption(
+                                optionText = "B",
+                                optionIndex = 1,
+                                quiz = this
+                            )
+                        )
+                        options.add(
+                            kr.co.bookquiz.api.entity.MultipleChoiceOption(
+                                optionText = "C",
+                                optionIndex = 2,
+                                quiz = this
+                            )
+                        )
+                    },
                 SubjectiveQuiz(
                     id = 2L,
                     title = "Quiz 2",
