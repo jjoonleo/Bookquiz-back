@@ -23,8 +23,13 @@ import kr.co.bookquiz.api.dto.useranswer.UserAnswerResponseDto
 
 @Entity
 @Table(
+        name = "user_answers",
         uniqueConstraints =
-                [UniqueConstraint(columnNames = ["user_id", "quiz_id", "attempt_number"])]
+                [
+                        UniqueConstraint(
+                                name = "user_quiz_attempt_unique",
+                                columnNames = ["user_id", "quiz_id", "attempt_number"]
+                        )]
 )
 @Inheritance(strategy = InheritanceType.JOINED)
 @DiscriminatorColumn(name = "answer_type")
@@ -36,9 +41,10 @@ abstract class UserAnswer<T>(
         @ManyToOne(fetch = FetchType.LAZY)
         @JoinColumn(name = "quiz_id", nullable = false)
         open val quiz: Quiz<*>,
-        @Column(nullable = false) open val attemptNumber: Int = 1,
-        @Column(nullable = false) open val isCorrect: Boolean = false,
-        @Column(nullable = false) open val answeredAt: LocalDateTime = LocalDateTime.now()
+        @Column(name = "attempt_number", nullable = false) open val attemptNumber: Int = 1,
+        @Column(name = "is_correct", nullable = false) open val isCorrect: Boolean = false,
+        @Column(name = "answered_at", nullable = false)
+        open val answeredAt: LocalDateTime = LocalDateTime.now()
 ) {
     // Declare userAnswer as abstract property in class body
     @get:Transient abstract val userAnswer: T
@@ -48,12 +54,13 @@ abstract class UserAnswer<T>(
 }
 
 @Entity
+@Table(name = "multiple_choice_user_answers")
 @DiscriminatorValue("MULTIPLE_CHOICE")
 class MultipleChoiceUserAnswer(
         id: Long? = null,
         user: User,
         quiz: Quiz<*>,
-        @Column(nullable = false) override val userAnswer: Int,
+        @Column(name = "user_answer", nullable = false) override val userAnswer: Int,
         attemptNumber: Int = 1,
         isCorrect: Boolean = false,
         answeredAt: LocalDateTime = LocalDateTime.now()
@@ -91,6 +98,7 @@ class MultipleChoiceUserAnswer(
 }
 
 @Entity
+@Table(name = "subjective_user_answers")
 @DiscriminatorValue("SUBJECTIVE")
 class SubjectiveUserAnswer(
         id: Long? = null,
@@ -102,7 +110,7 @@ class SubjectiveUserAnswer(
         answeredAt: LocalDateTime = LocalDateTime.now()
 ) : UserAnswer<String>(id, user, quiz, attemptNumber, isCorrect, answeredAt) {
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Column(name = "user_answer", nullable = false, columnDefinition = "TEXT")
     override val userAnswer: String = userAnswer
 
     override fun getAnswerType(): String = "SUBJECTIVE"
@@ -137,6 +145,7 @@ class SubjectiveUserAnswer(
 }
 
 @Entity
+@Table(name = "true_false_user_answers")
 @DiscriminatorValue("TRUE_FALSE")
 class TrueFalseUserAnswer(
         id: Long? = null,
@@ -148,7 +157,7 @@ class TrueFalseUserAnswer(
         answeredAt: LocalDateTime = LocalDateTime.now()
 ) : UserAnswer<Boolean>(id, user, quiz, attemptNumber, isCorrect, answeredAt) {
 
-    @Column(nullable = false) override val userAnswer: Boolean = userAnswer
+    @Column(name = "user_answer", nullable = false) override val userAnswer: Boolean = userAnswer
 
     override fun getAnswerType(): String = "TRUE_FALSE"
 

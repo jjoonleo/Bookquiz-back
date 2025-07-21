@@ -16,83 +16,87 @@ import kr.co.bookquiz.api.entity.*
         JsonSubTypes.Type(value = CreateTrueFalseUserAnswerDto::class, name = "TRUE_FALSE")
 )
 abstract class CreateUserAnswerDto {
-  abstract val type: String
-  abstract val quizId: Long
-  abstract val userAnswer: Any
+        abstract val type: String
+        abstract val quizId: Long
+        abstract val userAnswer: Any
+        open val attemptNumber: Int? = null
 
-  abstract fun toEntity(
-          user: User,
-          quiz: Quiz<*>,
-          isCorrect: Boolean,
-          attemptNumber: Int,
-          answeredAt: LocalDateTime,
-  ): UserAnswer<*>
+        abstract fun toEntity(
+                user: User,
+                quiz: Quiz<*>,
+                isCorrect: Boolean,
+                attemptNumber: Int,
+                answeredAt: LocalDateTime,
+        ): UserAnswer<*>
 }
 
 data class CreateMultipleChoiceUserAnswerDto(
         override val type: String = "MULTIPLE_CHOICE",
         override val quizId: Long,
-        override val userAnswer: Int
+        override val userAnswer: Int,
+        override val attemptNumber: Int? = null
 ) : CreateUserAnswerDto() {
-  override fun toEntity(
-          user: User,
-          quiz: Quiz<*>,
-          isCorrect: Boolean,
-          attemptNumber: Int,
-          answeredAt: LocalDateTime,
-  ): UserAnswer<*> =
-          MultipleChoiceUserAnswer(
-                  user = user,
-                  quiz = quiz,
-                  userAnswer = userAnswer,
-                  attemptNumber = attemptNumber,
-                  isCorrect = isCorrect,
-                  answeredAt = answeredAt
-          )
+        override fun toEntity(
+                user: User,
+                quiz: Quiz<*>,
+                isCorrect: Boolean,
+                attemptNumber: Int,
+                answeredAt: LocalDateTime,
+        ): UserAnswer<*> =
+                MultipleChoiceUserAnswer(
+                        user = user,
+                        quiz = quiz,
+                        userAnswer = userAnswer,
+                        attemptNumber = attemptNumber,
+                        isCorrect = isCorrect,
+                        answeredAt = answeredAt
+                )
 }
 
 data class CreateSubjectiveUserAnswerDto(
         override val type: String = "SUBJECTIVE",
         override val quizId: Long,
-        override val userAnswer: String
+        override val userAnswer: String,
+        override val attemptNumber: Int? = null
 ) : CreateUserAnswerDto() {
-  override fun toEntity(
-          user: User,
-          quiz: Quiz<*>,
-          isCorrect: Boolean,
-          attemptNumber: Int,
-          answeredAt: LocalDateTime
-  ): UserAnswer<*> =
-          SubjectiveUserAnswer(
-                  user = user,
-                  quiz = quiz,
-                  userAnswer = userAnswer,
-                  attemptNumber = attemptNumber,
-                  isCorrect = isCorrect,
-                  answeredAt = answeredAt
-          )
+        override fun toEntity(
+                user: User,
+                quiz: Quiz<*>,
+                isCorrect: Boolean,
+                attemptNumber: Int,
+                answeredAt: LocalDateTime
+        ): UserAnswer<*> =
+                SubjectiveUserAnswer(
+                        user = user,
+                        quiz = quiz,
+                        userAnswer = userAnswer,
+                        attemptNumber = attemptNumber,
+                        isCorrect = isCorrect,
+                        answeredAt = answeredAt
+                )
 }
 
 data class CreateTrueFalseUserAnswerDto(
         override val type: String = "TRUE_FALSE",
         override val quizId: Long,
-        override val userAnswer: Boolean
+        override val userAnswer: Boolean,
+        override val attemptNumber: Int? = null
 ) : CreateUserAnswerDto() {
-  override fun toEntity(
-          user: User,
-          quiz: Quiz<*>,
-          isCorrect: Boolean,
-          attemptNumber: Int,
-          answeredAt: LocalDateTime
-  ): UserAnswer<*> =
-          TrueFalseUserAnswer(
-                  user = user,
-                  quiz = quiz,
-                  userAnswer = userAnswer,
-                  attemptNumber = attemptNumber,
-                  isCorrect = isCorrect,
-                  answeredAt = answeredAt
-          )
+        override fun toEntity(
+                user: User,
+                quiz: Quiz<*>,
+                isCorrect: Boolean,
+                attemptNumber: Int,
+                answeredAt: LocalDateTime
+        ): UserAnswer<*> =
+                TrueFalseUserAnswer(
+                        user = user,
+                        quiz = quiz,
+                        userAnswer = userAnswer,
+                        attemptNumber = attemptNumber,
+                        isCorrect = isCorrect,
+                        answeredAt = answeredAt
+                )
 }
 
 // Update DTOs
@@ -106,11 +110,11 @@ data class CreateTrueFalseUserAnswerDto(
         JsonSubTypes.Type(value = UpdateTrueFalseUserAnswerDto::class, name = "TRUE_FALSE")
 )
 abstract class UpdateUserAnswerDto {
-  abstract val type: String
-  abstract val attemptNumber: Int?
-  abstract val isCorrect: Boolean?
+        abstract val type: String
+        abstract val attemptNumber: Int?
+        abstract val isCorrect: Boolean?
 
-  abstract fun updateEntity(existingUserAnswer: UserAnswer<*>): UserAnswer<*>
+        abstract fun updateEntity(existingUserAnswer: UserAnswer<*>): UserAnswer<*>
 }
 
 data class UpdateMultipleChoiceUserAnswerDto(
@@ -119,16 +123,16 @@ data class UpdateMultipleChoiceUserAnswerDto(
         override val isCorrect: Boolean? = null,
         val userAnswer: Int? = null
 ) : UpdateUserAnswerDto() {
-  override fun updateEntity(existingUserAnswer: UserAnswer<*>): UserAnswer<*> {
-    if (existingUserAnswer !is MultipleChoiceUserAnswer) {
-      throw IllegalArgumentException("UserAnswer type mismatch for update")
-    }
-    return existingUserAnswer.copy(
-            userAnswer = userAnswer ?: existingUserAnswer.userAnswer,
-            attemptNumber = attemptNumber ?: existingUserAnswer.attemptNumber,
-            isCorrect = isCorrect ?: existingUserAnswer.isCorrect
-    )
-  }
+        override fun updateEntity(existingUserAnswer: UserAnswer<*>): UserAnswer<*> {
+                if (existingUserAnswer !is MultipleChoiceUserAnswer) {
+                        throw IllegalArgumentException("UserAnswer type mismatch for update")
+                }
+                return existingUserAnswer.copy(
+                        userAnswer = userAnswer ?: existingUserAnswer.userAnswer,
+                        attemptNumber = attemptNumber ?: existingUserAnswer.attemptNumber,
+                        isCorrect = isCorrect ?: existingUserAnswer.isCorrect
+                )
+        }
 }
 
 data class UpdateSubjectiveUserAnswerDto(
@@ -137,16 +141,16 @@ data class UpdateSubjectiveUserAnswerDto(
         override val isCorrect: Boolean? = null,
         val userAnswer: String? = null
 ) : UpdateUserAnswerDto() {
-  override fun updateEntity(existingUserAnswer: UserAnswer<*>): UserAnswer<*> {
-    if (existingUserAnswer !is SubjectiveUserAnswer) {
-      throw IllegalArgumentException("UserAnswer type mismatch for update")
-    }
-    return existingUserAnswer.copy(
-            userAnswer = userAnswer ?: existingUserAnswer.userAnswer,
-            attemptNumber = attemptNumber ?: existingUserAnswer.attemptNumber,
-            isCorrect = isCorrect ?: existingUserAnswer.isCorrect
-    )
-  }
+        override fun updateEntity(existingUserAnswer: UserAnswer<*>): UserAnswer<*> {
+                if (existingUserAnswer !is SubjectiveUserAnswer) {
+                        throw IllegalArgumentException("UserAnswer type mismatch for update")
+                }
+                return existingUserAnswer.copy(
+                        userAnswer = userAnswer ?: existingUserAnswer.userAnswer,
+                        attemptNumber = attemptNumber ?: existingUserAnswer.attemptNumber,
+                        isCorrect = isCorrect ?: existingUserAnswer.isCorrect
+                )
+        }
 }
 
 data class UpdateTrueFalseUserAnswerDto(
@@ -155,16 +159,16 @@ data class UpdateTrueFalseUserAnswerDto(
         override val isCorrect: Boolean? = null,
         val userAnswer: Boolean? = null
 ) : UpdateUserAnswerDto() {
-  override fun updateEntity(existingUserAnswer: UserAnswer<*>): UserAnswer<*> {
-    if (existingUserAnswer !is TrueFalseUserAnswer) {
-      throw IllegalArgumentException("UserAnswer type mismatch for update")
-    }
-    return existingUserAnswer.copy(
-            userAnswer = userAnswer ?: existingUserAnswer.userAnswer,
-            attemptNumber = attemptNumber ?: existingUserAnswer.attemptNumber,
-            isCorrect = isCorrect ?: existingUserAnswer.isCorrect
-    )
-  }
+        override fun updateEntity(existingUserAnswer: UserAnswer<*>): UserAnswer<*> {
+                if (existingUserAnswer !is TrueFalseUserAnswer) {
+                        throw IllegalArgumentException("UserAnswer type mismatch for update")
+                }
+                return existingUserAnswer.copy(
+                        userAnswer = userAnswer ?: existingUserAnswer.userAnswer,
+                        attemptNumber = attemptNumber ?: existingUserAnswer.attemptNumber,
+                        isCorrect = isCorrect ?: existingUserAnswer.isCorrect
+                )
+        }
 }
 
 // Response DTOs
@@ -178,13 +182,13 @@ data class UpdateTrueFalseUserAnswerDto(
         JsonSubTypes.Type(value = TrueFalseUserAnswerResponseDto::class, name = "TRUE_FALSE")
 )
 abstract class UserAnswerResponseDto {
-  abstract val id: Long?
-  abstract val type: String
-  abstract val username: String
-  abstract val quizId: Long
-  abstract val attemptNumber: Int
-  abstract val isCorrect: Boolean
-  abstract val answeredAt: LocalDateTime
+        abstract val id: Long?
+        abstract val type: String
+        abstract val username: String
+        abstract val quizId: Long
+        abstract val attemptNumber: Int
+        abstract val isCorrect: Boolean
+        abstract val answeredAt: LocalDateTime
 }
 
 data class MultipleChoiceUserAnswerResponseDto(

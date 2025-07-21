@@ -17,5 +17,6 @@ enum class ErrorCode(val code: String, val defaultMessage: String) {
     TRANSLATOR_NOT_FOUND("E1014", "Translator not found"),
     ILLUSTRATOR_NOT_FOUND("E1015", "Illustrator not found"),
     BOOK_NOT_FOUND("E1016", "Book not found"),
+    DUPLICATE_ATTEMPT("E2001", "Answer for this attempt already exists for this quiz and user."),
     INTERNAL_ERROR("E9999", "Internal server error")
 }

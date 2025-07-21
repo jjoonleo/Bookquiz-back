@@ -13,6 +13,7 @@ import jakarta.persistence.InheritanceType
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.OneToMany
+import jakarta.persistence.Table
 import jakarta.persistence.Transient
 import java.time.LocalDateTime
 import kr.co.bookquiz.api.dto.quiz.MultipleChoiceQuizResponseDto
@@ -21,6 +22,7 @@ import kr.co.bookquiz.api.dto.quiz.SubjectiveQuizResponseDto
 import kr.co.bookquiz.api.dto.quiz.TrueFalseQuizResponseDto
 
 @Entity
+@Table(name = "quizzes")
 @Inheritance(strategy = InheritanceType.JOINED)
 @DiscriminatorColumn(name = "quiz_type")
 abstract class Quiz<T>(
@@ -31,7 +33,8 @@ abstract class Quiz<T>(
         @ManyToOne(fetch = FetchType.LAZY)
         @JoinColumn(name = "book_id", nullable = false)
         open val book: Book,
-        @Column(nullable = false) open val createdAt: LocalDateTime = LocalDateTime.now()
+        @Column(name = "created_at", nullable = false)
+        open val createdAt: LocalDateTime = LocalDateTime.now()
 ) {
     // Declare answer as abstract property in class body
     @get:Transient abstract val answer: T
@@ -43,16 +46,18 @@ abstract class Quiz<T>(
 }
 
 @Entity
+@Table(name = "multiple_choice_options")
 class MultipleChoiceOption(
         @Id @GeneratedValue(strategy = GenerationType.IDENTITY) val id: Long? = null,
-        @Column(nullable = false) val optionText: String,
-        @Column(nullable = false) val optionIndex: Int,
+        @Column(name = "option_text", nullable = false) val optionText: String,
+        @Column(name = "option_index", nullable = false) val optionIndex: Int,
         @ManyToOne(fetch = FetchType.LAZY)
         @JoinColumn(name = "quiz_id", nullable = false)
         val quiz: MultipleChoiceQuiz
 )
 
 @Entity
+@Table(name = "multiple_choice_quizzes")
 @DiscriminatorValue("MULTIPLE_CHOICE")
 class MultipleChoiceQuiz(
         id: Long? = null,
@@ -137,6 +142,7 @@ class MultipleChoiceQuiz(
 }
 
 @Entity
+@Table(name = "subjective_quizzes")
 @DiscriminatorValue("SUBJECTIVE")
 class SubjectiveQuiz(
         id: Long? = null,
@@ -186,6 +192,7 @@ class SubjectiveQuiz(
 }
 
 @Entity
+@Table(name = "true_false_quizzes")
 @DiscriminatorValue("TRUE_FALSE")
 class TrueFalseQuiz(
         id: Long? = null,
