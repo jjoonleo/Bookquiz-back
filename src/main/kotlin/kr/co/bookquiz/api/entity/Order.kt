@@ -14,13 +14,17 @@ import jakarta.persistence.ManyToOne
 import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
 import java.time.LocalDateTime
+import java.util.UUID
 import org.hibernate.annotations.JdbcTypeCode
 import org.hibernate.type.SqlTypes
 
 @Entity
 @Table(name = "orders")
 data class Order(
-        @Id @GeneratedValue(strategy = GenerationType.IDENTITY) val id: Long = 0,
+        @Id
+        @GeneratedValue(strategy = GenerationType.UUID)
+        @Column(name = "id", updatable = false, nullable = false, columnDefinition = "UUID")
+        val id: UUID? = null,
         @ManyToOne(fetch = FetchType.LAZY)
         @JoinColumn(name = "username", nullable = false)
         val user: User,

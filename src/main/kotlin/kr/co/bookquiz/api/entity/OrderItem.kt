@@ -12,13 +12,10 @@ import jakarta.persistence.Table
 @Entity
 @Table(name = "order_items")
 data class OrderItem(
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long = 0,
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "order_id")
-    val order: Order,
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "book_id")
-    val book: Book,
-    val price: Int
+        @Id @GeneratedValue(strategy = GenerationType.IDENTITY) val id: Long = 0,
+        @ManyToOne(fetch = FetchType.LAZY)
+        @JoinColumn(name = "order_id", columnDefinition = "UUID")
+        val order: Order,
+        @ManyToOne(fetch = FetchType.LAZY) @JoinColumn(name = "book_id") val book: Book,
+        val price: Int
 )
