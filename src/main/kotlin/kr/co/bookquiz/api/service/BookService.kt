@@ -28,6 +28,14 @@ class BookService(private val bookRepository: BookRepository) {
         return savedBook.toResponse()
     }
 
+    @Transactional
+    fun createBooksBulk(bookCreateRequests: List<BookCreateRequest>): List<BookResponse> {
+        if (bookCreateRequests.isEmpty()) return emptyList()
+        val entities = bookCreateRequests.map { it.toEntity() }
+        val saved = bookRepository.saveAll(entities)
+        return saved.map { it.toResponse() }
+    }
+
     @Transactional(readOnly = true)
     fun getBookById(id: Long): BookResponse {
         val book = getBookEntityById(id)

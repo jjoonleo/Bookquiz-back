@@ -22,10 +22,18 @@ class BookController(private val bookService: BookService) {
 
     @PostMapping
     fun createBook(
-        @Valid @RequestBody bookCreateRequest: BookCreateRequest
+            @Valid @RequestBody bookCreateRequest: BookCreateRequest
     ): ResponseEntity<ApiResponse<BookResponse>> {
         val createdBook = bookService.createBook(bookCreateRequest)
         return ResponseEntity.ok(ApiResponse(true, "Book created successfully", createdBook))
+    }
+
+    @PostMapping("/bulk")
+    fun createBooksBulk(
+            @Valid @RequestBody bookCreateRequests: List<BookCreateRequest>
+    ): ResponseEntity<ApiResponse<List<BookResponse>>> {
+        val created = bookService.createBooksBulk(bookCreateRequests)
+        return ResponseEntity.ok(ApiResponse(true, "Books created successfully", created))
     }
 
     @GetMapping("/{id}")
@@ -36,8 +44,8 @@ class BookController(private val bookService: BookService) {
 
     @PutMapping("/{id}")
     fun updateBook(
-        @PathVariable id: Long,
-        @Valid @RequestBody bookUpdateRequest: BookUpdateRequest
+            @PathVariable id: Long,
+            @Valid @RequestBody bookUpdateRequest: BookUpdateRequest
     ): ResponseEntity<ApiResponse<BookResponse>> {
         val updatedBook = bookService.updateBook(id, bookUpdateRequest)
         return ResponseEntity.ok(ApiResponse(true, "Book updated successfully", updatedBook))
