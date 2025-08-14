@@ -14,6 +14,7 @@ import jakarta.persistence.Table
 data class Book(
         @Id @GeneratedValue(strategy = GenerationType.IDENTITY) val id: Long? = null,
         @Column(nullable = false, length = 255) val title: String,
+        @Column(nullable = true, length = 500) val subtitle: String?,
         @Column(nullable = false, length = 30, unique = true) val isbn: String,
         @Column(nullable = false, length = 255) val publisher: String,
         @Column(name = "quiz_price", nullable = false) val quizPrice: Int,

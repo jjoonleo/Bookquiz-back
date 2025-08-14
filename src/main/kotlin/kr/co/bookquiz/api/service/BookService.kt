@@ -56,6 +56,7 @@ class BookService(private val bookRepository: BookRepository) {
         val updatedBook =
                 existingBook.copy(
                         title = bookUpdateRequest.title,
+                        subtitle = bookUpdateRequest.subtitle,
                         isbn = bookUpdateRequest.isbn,
                         publisher = bookUpdateRequest.publisher,
                         quizPrice = bookUpdateRequest.quizPrice,

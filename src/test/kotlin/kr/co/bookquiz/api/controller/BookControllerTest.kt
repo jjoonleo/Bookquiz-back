@@ -51,6 +51,7 @@ class BookControllerTest {
                         BookResponse(
                                 id = 1L,
                                 title = "Test Book",
+                                subtitle = "A Test Subtitle",
                                 isbn = "978-0123456789",
                                 publisher = "Test Publisher",
                                 quizPrice = 1000,
@@ -64,6 +65,7 @@ class BookControllerTest {
                 testBookCreateRequest =
                         BookCreateRequest(
                                 title = "Test Book",
+                                subtitle = "A Test Subtitle",
                                 isbn = "978-0123456789",
                                 publisher = "Test Publisher",
                                 quizPrice = 1000,
@@ -76,6 +78,7 @@ class BookControllerTest {
                 testBookUpdateRequest =
                         BookUpdateRequest(
                                 title = "Updated Test Book",
+                                subtitle = "An Updated Test Subtitle",
                                 isbn = "978-0123456789",
                                 publisher = "Test Publisher",
                                 quizPrice = 1000,

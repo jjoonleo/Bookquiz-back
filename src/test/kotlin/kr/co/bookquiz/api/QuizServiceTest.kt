@@ -37,6 +37,7 @@ class QuizServiceTest {
                 Book(
                         id = 1L,
                         title = "Test Book",
+                        subtitle = "Test Book Subtitle",
                         isbn = "1234567890123",
                         publisher = "Test Publisher",
                         quizPrice = 1000,

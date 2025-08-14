@@ -17,289 +17,303 @@ import org.springframework.test.context.ActiveProfiles
 @ActiveProfiles("test")
 class BookRepositoryTest {
 
-    @Autowired private lateinit var bookRepository: BookRepository
+        @Autowired private lateinit var bookRepository: BookRepository
 
-    @Autowired private lateinit var testEntityManager: TestEntityManager
+        @Autowired private lateinit var testEntityManager: TestEntityManager
 
-    @Test
-    fun `should find all books returns empty list initially`() {
-        // Given - no books
+        @Test
+        fun `should find all books returns empty list initially`() {
+                // Given - no books
 
-        // When
-        val allBooks = bookRepository.findAll()
+                // When
+                val allBooks = bookRepository.findAll()
 
-        // Then
-        assertThat(allBooks).isEmpty()
-    }
+                // Then
+                assertThat(allBooks).isEmpty()
+        }
 
-    @Test
-    fun `should count books returns zero initially`() {
-        // Given - no books
-        val initialCount = bookRepository.count()
+        @Test
+        fun `should count books returns zero initially`() {
+                // Given - no books
+                val initialCount = bookRepository.count()
 
-        // When - count books
-        // Then
-        assertThat(initialCount).isEqualTo(0)
-    }
+                // When - count books
+                // Then
+                assertThat(initialCount).isEqualTo(0)
+        }
 
-    @Test
-    fun `should find book by non-existent id returns empty`() {
-        // Given - no books
+        @Test
+        fun `should find book by non-existent id returns empty`() {
+                // Given - no books
 
-        // When
-        val foundBook = bookRepository.findById(999L)
+                // When
+                val foundBook = bookRepository.findById(999L)
 
-        // Then
-        assertThat(foundBook).isNotPresent
-    }
+                // Then
+                assertThat(foundBook).isNotPresent
+        }
 
-    @Test
-    fun `should delete by non-existent id does not throw exception`() {
-        // Given - no books
+        @Test
+        fun `should delete by non-existent id does not throw exception`() {
+                // Given - no books
 
-        // When & Then - should not throw exception
-        bookRepository.deleteById(999L)
-    }
+                // When & Then - should not throw exception
+                bookRepository.deleteById(999L)
+        }
 
-    @Test
-    fun `should save and find book by id`() {
-        // Given
-        val book =
-                Book(
-                        title = "Test Book",
-                        isbn = "9780123456789",
-                        publisher = "Test Publisher",
-                        quizPrice = 1000,
-                        thumbnail = "https://example.com/thumbnail.jpg"
-                )
+        @Test
+        fun `should save and find book by id`() {
+                // Given
+                val book =
+                        Book(
+                                title = "Test Book",
+                                subtitle = "A Test Subtitle",
+                                isbn = "9780123456789",
+                                publisher = "Test Publisher",
+                                quizPrice = 1000,
+                                thumbnail = "https://example.com/thumbnail.jpg"
+                        )
 
-        // When
-        val savedBook = bookRepository.save(book)
+                // When
+                val savedBook = bookRepository.save(book)
 
-        // Then
-        assertThat(savedBook.id).isNotNull
-        val foundBook = bookRepository.findById(savedBook.id!!)
-        assertThat(foundBook).isPresent
-        assertThat(foundBook.get().title).isEqualTo("Test Book")
-        assertThat(foundBook.get().isbn).isEqualTo("9780123456789")
-        assertThat(foundBook.get().publisher).isEqualTo("Test Publisher")
-        assertThat(foundBook.get().quizPrice).isEqualTo(1000)
-        assertThat(foundBook.get().thumbnail).isEqualTo("https://example.com/thumbnail.jpg")
-    }
+                // Then
+                assertThat(savedBook.id).isNotNull
+                val foundBook = bookRepository.findById(savedBook.id!!)
+                assertThat(foundBook).isPresent
+                assertThat(foundBook.get().title).isEqualTo("Test Book")
+                assertThat(foundBook.get().isbn).isEqualTo("9780123456789")
+                assertThat(foundBook.get().publisher).isEqualTo("Test Publisher")
+                assertThat(foundBook.get().quizPrice).isEqualTo(1000)
+                assertThat(foundBook.get().thumbnail).isEqualTo("https://example.com/thumbnail.jpg")
+        }
 
-    @Test
-    fun `should save book with authors, translators, and illustrators`() {
-        // Given
-        val book =
-                Book(
-                        title = "Book with Relations",
-                        isbn = "9780123456790",
-                        publisher = "Relation Publisher",
-                        quizPrice = 2000,
-                        thumbnail = "https://example.com/relations.jpg",
-                        authors = "Test Author",
-                        translators = "Test Translator",
-                        illustrators = "Test Illustrator"
-                )
+        @Test
+        fun `should save book with authors, translators, and illustrators`() {
+                // Given
+                val book =
+                        Book(
+                                title = "Book with Relations",
+                                subtitle = "A Book with Relations Subtitle",
+                                isbn = "9780123456790",
+                                publisher = "Relation Publisher",
+                                quizPrice = 2000,
+                                thumbnail = "https://example.com/relations.jpg",
+                                authors = "Test Author",
+                                translators = "Test Translator",
+                                illustrators = "Test Illustrator"
+                        )
 
-        // When
-        val savedBook = bookRepository.save(book)
+                // When
+                val savedBook = bookRepository.save(book)
 
-        // Then
-        assertThat(savedBook.id).isNotNull
-        val foundBook = bookRepository.findById(savedBook.id!!)
-        assertThat(foundBook).isPresent
+                // Then
+                assertThat(savedBook.id).isNotNull
+                val foundBook = bookRepository.findById(savedBook.id!!)
+                assertThat(foundBook).isPresent
 
-        val retrievedBook = foundBook.get()
-        assertThat(retrievedBook.title).isEqualTo("Book with Relations")
-        assertThat(retrievedBook.authors).isEqualTo("Test Author")
-        assertThat(retrievedBook.translators).isEqualTo("Test Translator")
-        assertThat(retrievedBook.illustrators).isEqualTo("Test Illustrator")
-    }
+                val retrievedBook = foundBook.get()
+                assertThat(retrievedBook.title).isEqualTo("Book with Relations")
+                assertThat(retrievedBook.authors).isEqualTo("Test Author")
+                assertThat(retrievedBook.translators).isEqualTo("Test Translator")
+                assertThat(retrievedBook.illustrators).isEqualTo("Test Illustrator")
+        }
 
-    @Test
-    fun `should update book`() {
-        // Given
-        val book =
-                Book(
-                        title = "Original Title",
-                        isbn = "9780123456791",
-                        publisher = "Update Publisher",
-                        quizPrice = 1500,
-                        thumbnail = "https://example.com/original.jpg"
-                )
-        val savedBook = bookRepository.save(book)
+        @Test
+        fun `should update book`() {
+                // Given
+                val book =
+                        Book(
+                                title = "Original Title",
+                                subtitle = "Original Subtitle",
+                                isbn = "9780123456791",
+                                publisher = "Update Publisher",
+                                quizPrice = 1500,
+                                thumbnail = "https://example.com/original.jpg"
+                        )
+                val savedBook = bookRepository.save(book)
 
-        // When
-        val updatedBook = savedBook.copy(title = "Updated Test Book", quizPrice = 2000)
-        bookRepository.save(updatedBook)
+                // When
+                val updatedBook = savedBook.copy(title = "Updated Test Book", quizPrice = 2000)
+                bookRepository.save(updatedBook)
 
-        // Then
-        val foundBook = bookRepository.findById(savedBook.id!!)
-        assertThat(foundBook).isPresent
-        assertThat(foundBook.get().title).isEqualTo("Updated Test Book")
-        assertThat(foundBook.get().quizPrice).isEqualTo(2000)
-    }
+                // Then
+                val foundBook = bookRepository.findById(savedBook.id!!)
+                assertThat(foundBook).isPresent
+                assertThat(foundBook.get().title).isEqualTo("Updated Test Book")
+                assertThat(foundBook.get().quizPrice).isEqualTo(2000)
+        }
 
-    @Test
-    fun `should delete book`() {
-        // Given
-        val book =
-                Book(
-                        title = "Book to Delete",
-                        isbn = "9780123456792",
-                        publisher = "Delete Publisher",
-                        quizPrice = 1000,
-                        thumbnail = "https://example.com/delete.jpg"
-                )
-        val savedBook = bookRepository.save(book)
+        @Test
+        fun `should delete book`() {
+                // Given
+                val book =
+                        Book(
+                                title = "Book to Delete",
+                                subtitle = "A Book to Delete Subtitle",
+                                isbn = "9780123456792",
+                                publisher = "Delete Publisher",
+                                quizPrice = 1000,
+                                thumbnail = "https://example.com/delete.jpg"
+                        )
+                val savedBook = bookRepository.save(book)
 
-        // When
-        val bookId = savedBook.id!!
-        bookRepository.deleteById(bookId)
+                // When
+                val bookId = savedBook.id!!
+                bookRepository.deleteById(bookId)
 
-        // Then
-        val foundBook = bookRepository.findById(bookId)
-        assertThat(foundBook).isNotPresent
-    }
+                // Then
+                val foundBook = bookRepository.findById(bookId)
+                assertThat(foundBook).isNotPresent
+        }
 
-    @Test
-    fun `should find all books`() {
-        // Given
-        val book1 =
-                Book(
-                        title = "First Book",
-                        isbn = "9780123456793",
-                        publisher = "List Publisher",
-                        quizPrice = 1000,
-                        thumbnail = "https://example.com/first.jpg"
-                )
-        val book2 =
-                Book(
-                        title = "Second Book",
-                        isbn = "9780123456794",
-                        publisher = "List Publisher",
-                        quizPrice = 1500,
-                        thumbnail = "https://example.com/second.jpg"
-                )
+        @Test
+        fun `should find all books`() {
+                // Given
+                val book1 =
+                        Book(
+                                title = "First Book",
+                                subtitle = "First Book Subtitle",
+                                isbn = "9780123456793",
+                                publisher = "List Publisher",
+                                quizPrice = 1000,
+                                thumbnail = "https://example.com/first.jpg"
+                        )
+                val book2 =
+                        Book(
+                                title = "Second Book",
+                                subtitle = "Second Book Subtitle",
+                                isbn = "9780123456794",
+                                publisher = "List Publisher",
+                                quizPrice = 1500,
+                                thumbnail = "https://example.com/second.jpg"
+                        )
 
-        bookRepository.save(book1)
-        bookRepository.save(book2)
+                bookRepository.save(book1)
+                bookRepository.save(book2)
 
-        // When
-        val allBooks = bookRepository.findAll()
+                // When
+                val allBooks = bookRepository.findAll()
 
-        // Then
-        assertThat(allBooks).hasSize(2)
-        assertThat(allBooks.map { it.title }).containsExactlyInAnyOrder("First Book", "Second Book")
-    }
+                // Then
+                assertThat(allBooks).hasSize(2)
+                assertThat(allBooks.map { it.title })
+                        .containsExactlyInAnyOrder("First Book", "Second Book")
+        }
 
-    @Test
-    fun `should save book without optional fields`() {
-        // Given
-        val bookWithoutOptional =
-                Book(
-                        title = "Minimal Book",
-                        isbn = "9780123456795",
-                        publisher = "Minimal Publisher",
-                        quizPrice = 500,
-                        thumbnail = null
-                )
+        @Test
+        fun `should save book without optional fields`() {
+                // Given
+                val bookWithoutOptional =
+                        Book(
+                                title = "Minimal Book",
+                                subtitle = null,
+                                isbn = "9780123456795",
+                                publisher = "Minimal Publisher",
+                                quizPrice = 500,
+                                thumbnail = null
+                        )
 
-        // When
-        val savedBook = bookRepository.save(bookWithoutOptional)
+                // When
+                val savedBook = bookRepository.save(bookWithoutOptional)
 
-        // Then
-        assertThat(savedBook.id).isNotNull
-        val foundBook = bookRepository.findById(savedBook.id!!)
-        assertThat(foundBook).isPresent
-        assertThat(foundBook.get().title).isEqualTo("Minimal Book")
-        assertThat(foundBook.get().thumbnail).isNull()
-        assertThat(foundBook.get().authors).isEqualTo("")
-        assertThat(foundBook.get().translators).isEqualTo("")
-        assertThat(foundBook.get().illustrators).isEqualTo("")
-    }
+                // Then
+                assertThat(savedBook.id).isNotNull
+                val foundBook = bookRepository.findById(savedBook.id!!)
+                assertThat(foundBook).isPresent
+                assertThat(foundBook.get().title).isEqualTo("Minimal Book")
+                assertThat(foundBook.get().thumbnail).isNull()
+                assertThat(foundBook.get().authors).isEqualTo("")
+                assertThat(foundBook.get().translators).isEqualTo("")
+                assertThat(foundBook.get().illustrators).isEqualTo("")
+        }
 
-    @Test
-    fun `should save multiple books with sequential IDs`() {
-        // Given
-        val book1 =
-                Book(
-                        title = "Sequential Test 1",
-                        isbn = "9780123456797",
-                        publisher = "Sequential Publisher",
-                        quizPrice = 1000,
-                        thumbnail = "https://example.com/seq1.jpg"
-                )
-        val book2 =
-                Book(
-                        title = "Sequential Test 2",
-                        isbn = "9780123456798",
-                        publisher = "Sequential Publisher",
-                        quizPrice = 1500,
-                        thumbnail = "https://example.com/seq2.jpg"
-                )
+        @Test
+        fun `should save multiple books with sequential IDs`() {
+                // Given
+                val book1 =
+                        Book(
+                                title = "Sequential Test 1",
+                                subtitle = "Sequential Test 1 Subtitle",
+                                isbn = "9780123456797",
+                                publisher = "Sequential Publisher",
+                                quizPrice = 1000,
+                                thumbnail = "https://example.com/seq1.jpg"
+                        )
+                val book2 =
+                        Book(
+                                title = "Sequential Test 2",
+                                subtitle = "Sequential Test 2 Subtitle",
+                                isbn = "9780123456798",
+                                publisher = "Sequential Publisher",
+                                quizPrice = 1500,
+                                thumbnail = "https://example.com/seq2.jpg"
+                        )
 
-        // When
-        val savedBook1 = bookRepository.save(book1)
-        val savedBook2 = bookRepository.save(book2)
+                // When
+                val savedBook1 = bookRepository.save(book1)
+                val savedBook2 = bookRepository.save(book2)
 
-        // Then
-        assertThat(savedBook1.id).isNotNull
-        assertThat(savedBook2.id).isNotNull
-        val id1 = savedBook1.id!!
-        val id2 = savedBook2.id!!
-        assertThat(id1).isLessThan(id2)
-        assertThat(id2 - id1).isEqualTo(1L)
-    }
+                // Then
+                assertThat(savedBook1.id).isNotNull
+                assertThat(savedBook2.id).isNotNull
+                val id1 = savedBook1.id!!
+                val id2 = savedBook2.id!!
+                assertThat(id1).isLessThan(id2)
+                assertThat(id2 - id1).isEqualTo(1L)
+        }
 
-    @Test
-    fun `should handle book with multiple authors`() {
-        // Given
-        val book =
-                Book(
-                        title = "Multi-Author Book",
-                        isbn = "9780123456799",
-                        publisher = "Multi Publisher",
-                        quizPrice = 2000,
-                        thumbnail = "https://example.com/multi.jpg",
-                        authors = "First Author, Second Author"
-                )
+        @Test
+        fun `should handle book with multiple authors`() {
+                // Given
+                val book =
+                        Book(
+                                title = "Multi-Author Book",
+                                subtitle = "Multi-Author Book Subtitle",
+                                isbn = "9780123456799",
+                                publisher = "Multi Publisher",
+                                quizPrice = 2000,
+                                thumbnail = "https://example.com/multi.jpg",
+                                authors = "First Author, Second Author"
+                        )
 
-        // When
-        val savedBook = bookRepository.save(book)
+                // When
+                val savedBook = bookRepository.save(book)
 
-        // Then
-        assertThat(savedBook.id).isNotNull
-        val foundBook = bookRepository.findById(savedBook.id!!)
-        assertThat(foundBook).isPresent
-        assertThat(foundBook.get().authors).isEqualTo("First Author, Second Author")
-    }
+                // Then
+                assertThat(savedBook.id).isNotNull
+                val foundBook = bookRepository.findById(savedBook.id!!)
+                assertThat(foundBook).isPresent
+                assertThat(foundBook.get().authors).isEqualTo("First Author, Second Author")
+        }
 
-    @Test
-    fun `should handle book with multiple translators and illustrators`() {
-        // Given
-        val book =
-                Book(
-                        title = "Multi-Collaborator Book",
-                        isbn = "9780123456800",
-                        publisher = "Collaborator Publisher",
-                        quizPrice = 2500,
-                        thumbnail = "https://example.com/collab.jpg",
-                        translators = "First Translator, Second Translator",
-                        illustrators = "First Illustrator, Second Illustrator"
-                )
+        @Test
+        fun `should handle book with multiple translators and illustrators`() {
+                // Given
+                val book =
+                        Book(
+                                title = "Multi-Collaborator Book",
+                                subtitle = "Multi-Collaborator Book Subtitle",
+                                isbn = "9780123456800",
+                                publisher = "Collaborator Publisher",
+                                quizPrice = 2500,
+                                thumbnail = "https://example.com/collab.jpg",
+                                translators = "First Translator, Second Translator",
+                                illustrators = "First Illustrator, Second Illustrator"
+                        )
 
-        // When
-        val savedBook = bookRepository.save(book)
+                // When
+                val savedBook = bookRepository.save(book)
 
-        // Then
-        assertThat(savedBook.id).isNotNull
-        val foundBook = bookRepository.findById(savedBook.id!!)
-        assertThat(foundBook).isPresent
+                // Then
+                assertThat(savedBook.id).isNotNull
+                val foundBook = bookRepository.findById(savedBook.id!!)
+                assertThat(foundBook).isPresent
 
-        val retrievedBook = foundBook.get()
-        assertThat(retrievedBook.translators).isEqualTo("First Translator, Second Translator")
-        assertThat(retrievedBook.illustrators).isEqualTo("First Illustrator, Second Illustrator")
-    }
+                val retrievedBook = foundBook.get()
+                assertThat(retrievedBook.translators)
+                        .isEqualTo("First Translator, Second Translator")
+                assertThat(retrievedBook.illustrators)
+                        .isEqualTo("First Illustrator, Second Illustrator")
+        }
 }

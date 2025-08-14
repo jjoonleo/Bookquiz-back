@@ -7,6 +7,7 @@ fun BookCreateRequest.toEntity(): Book {
     return Book(
             id = null, // Will be generated
             title = this.title,
+            subtitle = this.subtitle,
             isbn = this.isbn,
             publisher = this.publisher,
             quizPrice = this.quizPrice,
@@ -22,6 +23,7 @@ fun BookUpdateRequest.toEntity(id: Long?): Book {
     return Book(
             id = id,
             title = this.title,
+            subtitle = this.subtitle,
             isbn = this.isbn,
             publisher = this.publisher,
             quizPrice = this.quizPrice,
@@ -38,6 +40,7 @@ fun Book.toResponse(): BookResponse {
     return BookResponse(
             id = this.id,
             title = this.title,
+            subtitle = this.subtitle,
             isbn = this.isbn,
             publisher = this.publisher,
             quizPrice = this.quizPrice,

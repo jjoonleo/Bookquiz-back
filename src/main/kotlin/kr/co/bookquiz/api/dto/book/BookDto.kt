@@ -9,6 +9,8 @@ data class BookCreateRequest(
         @field:NotBlank(message = "Title is required")
         @field:Size(max = 255, message = "Title must not exceed 255 characters")
         val title: String,
+        @field:Size(max = 500, message = "Subtitle must not exceed 500 characters")
+        val subtitle: String? = null,
         @field:NotBlank(message = "ISBN is required")
         @field:Size(max = 30, message = "ISBN must not exceed 30 characters")
         val isbn: String,
@@ -34,6 +36,8 @@ data class BookUpdateRequest(
         @field:NotBlank(message = "Title is required")
         @field:Size(max = 255, message = "Title must not exceed 255 characters")
         val title: String,
+        @field:Size(max = 500, message = "Subtitle must not exceed 500 characters")
+        val subtitle: String? = null,
         @field:NotBlank(message = "ISBN is required")
         @field:Size(max = 30, message = "ISBN must not exceed 30 characters")
         val isbn: String,
@@ -58,6 +62,7 @@ data class BookUpdateRequest(
 data class BookResponse(
         val id: Long?,
         val title: String,
+        val subtitle: String?,
         val isbn: String,
         val publisher: String,
         val quizPrice: Int,
