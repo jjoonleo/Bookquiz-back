@@ -96,6 +96,50 @@ class BookServiceTest {
         }
 
         @Test
+        fun `should create books in bulk successfully`() {
+                // Given
+                val bulkRequests =
+                        listOf(
+                                testBookCreateRequest,
+                                testBookCreateRequest.copy(
+                                        title = "Another Book",
+                                        isbn = "978-0000000001"
+                                )
+                        )
+
+                val savedBooks =
+                        listOf(
+                                testBook,
+                                testBook.copy(
+                                        id = 2L,
+                                        title = "Another Book",
+                                        isbn = "978-0000000001"
+                                )
+                        )
+
+                given(bookRepository.saveAll(org.mockito.ArgumentMatchers.anyList()))
+                        .willReturn(savedBooks)
+
+                // When
+                val results = bookService.createBooksBulk(bulkRequests)
+
+                // Then
+                assertThat(results).hasSize(2)
+                assertThat(results[0].title).isEqualTo("Test Book")
+                assertThat(results[1].title).isEqualTo("Another Book")
+                then(bookRepository).should().saveAll(org.mockito.ArgumentMatchers.anyList())
+        }
+
+        @Test
+        fun `should return empty list when bulk create input is empty`() {
+                // When
+                val results = bookService.createBooksBulk(emptyList())
+
+                // Then
+                assertThat(results).isEmpty()
+        }
+
+        @Test
         fun `should create new person when not found`() {
                 // Given
                 val createRequestWithNewPerson = testBookCreateRequest.copy(authors = "New Person")
