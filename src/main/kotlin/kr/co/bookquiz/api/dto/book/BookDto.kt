@@ -21,14 +21,13 @@ data class BookCreateRequest(
         @field:Positive(message = "Max attempt must be positive") val maxAttempt: Int = 3,
         @field:Size(max = 1000, message = "Thumbnail URL must not exceed 1000 characters")
         val thumbnail: String? = null,
-        @field:NotNull(message = "Authors are required")
-        @field:Size(min = 1, message = "At least one author is required")
-        val authorNames: List<@NotBlank(message = "Author name cannot be blank") String> =
-                emptyList(),
-        val translatorNames: List<@NotBlank(message = "Translator name cannot be blank") String> =
-                emptyList(),
-        val illustratorNames: List<@NotBlank(message = "Illustrator name cannot be blank") String> =
-                emptyList()
+        @field:NotBlank(message = "Authors are required")
+        @field:Size(max = 2000, message = "Authors must not exceed 2000 characters")
+        val authors: String,
+        @field:Size(max = 2000, message = "Translators must not exceed 2000 characters")
+        val translators: String = "",
+        @field:Size(max = 2000, message = "Illustrators must not exceed 2000 characters")
+        val illustrators: String = ""
 )
 
 data class BookUpdateRequest(
@@ -47,14 +46,13 @@ data class BookUpdateRequest(
         @field:Positive(message = "Max attempt must be positive") val maxAttempt: Int = 3,
         @field:Size(max = 1000, message = "Thumbnail URL must not exceed 1000 characters")
         val thumbnail: String? = null,
-        @field:NotNull(message = "Authors are required")
-        @field:Size(min = 1, message = "At least one author is required")
-        val authorNames: List<@NotBlank(message = "Author name cannot be blank") String> =
-                emptyList(),
-        val translatorNames: List<@NotBlank(message = "Translator name cannot be blank") String> =
-                emptyList(),
-        val illustratorNames: List<@NotBlank(message = "Illustrator name cannot be blank") String> =
-                emptyList()
+        @field:NotBlank(message = "Authors are required")
+        @field:Size(max = 2000, message = "Authors must not exceed 2000 characters")
+        val authors: String,
+        @field:Size(max = 2000, message = "Translators must not exceed 2000 characters")
+        val translators: String = "",
+        @field:Size(max = 2000, message = "Illustrators must not exceed 2000 characters")
+        val illustrators: String = ""
 )
 
 data class BookResponse(
@@ -65,9 +63,7 @@ data class BookResponse(
         val quizPrice: Int,
         val maxAttempt: Int,
         val thumbnail: String?,
-        val authors: List<PersonResponse>,
-        val translators: List<PersonResponse>,
-        val illustrators: List<PersonResponse>
+        val authors: String,
+        val translators: String,
+        val illustrators: String
 )
-
-data class PersonResponse(val id: Long?, val name: String)

@@ -6,9 +6,6 @@ import jakarta.persistence.Entity
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
-import jakarta.persistence.JoinColumn
-import jakarta.persistence.JoinTable
-import jakarta.persistence.ManyToMany
 import jakarta.persistence.Table
 
 @Entity
@@ -22,25 +19,8 @@ data class Book(
         @Column(name = "quiz_price", nullable = false) val quizPrice: Int,
         @Column(name = "thumbnail", nullable = true, length = 1000) val thumbnail: String?,
         @Column(name = "max_attempt", nullable = false) val maxAttempt: Int = 3,
-        @ManyToMany
-        @JoinTable(
-                name = "book_author",
-                joinColumns = [JoinColumn(name = "book_id")],
-                inverseJoinColumns = [JoinColumn(name = "person_id")]
-        )
-        val authors: List<Person> = mutableListOf(),
-        @ManyToMany
-        @JoinTable(
-                name = "book_translator",
-                joinColumns = [JoinColumn(name = "book_id")],
-                inverseJoinColumns = [JoinColumn(name = "person_id")]
-        )
-        val translators: List<Person> = mutableListOf(),
-        @ManyToMany
-        @JoinTable(
-                name = "book_illustrator",
-                joinColumns = [JoinColumn(name = "book_id")],
-                inverseJoinColumns = [JoinColumn(name = "person_id")],
-        )
-        val illustrators: List<Person> = mutableListOf()
+        @Column(name = "authors", nullable = false, length = 2000) val authors: String = "",
+        @Column(name = "translators", nullable = false, length = 2000) val translators: String = "",
+        @Column(name = "illustrators", nullable = false, length = 2000)
+        val illustrators: String = ""
 )
