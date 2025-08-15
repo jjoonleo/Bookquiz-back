@@ -29,6 +29,12 @@ Token lifetimes
 -   `jwt.expiration` (seconds) for access tokens.
 -   `jwt.refresh-expiration` (seconds) for refresh tokens.
 
+User roles (authorities)
+
+-   Default roles: `ROLE_USER`, `ROLE_ADMIN`.
+-   Seeded via Flyway: [`V1_0_2__insert_default_authorities.sql`](https://github.com/jjoonleo/Bookquiz-back/blob/main/src/main/resources/db/migration/V1_0_2__insert_default_authorities.sql)
+-   Returned in auth responses as `user.authorities`.
+
 Common errors
 
 -   Expired or malformed token → 401 with error details.
