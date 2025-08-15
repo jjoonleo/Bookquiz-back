@@ -4,6 +4,7 @@ import kr.co.bookquiz.api.api.exception.ApiException
 import kr.co.bookquiz.api.api.exception.ErrorCode
 import kr.co.bookquiz.api.dto.auth.LoginRequest
 import kr.co.bookquiz.api.dto.auth.LoginResponse
+import kr.co.bookquiz.api.dto.auth.ProfileResponse
 import kr.co.bookquiz.api.dto.auth.RefreshTokenResponse
 import kr.co.bookquiz.api.dto.auth.UserInfo
 import kr.co.bookquiz.api.repository.UserRepository
@@ -21,43 +22,46 @@ import org.springframework.transaction.annotation.Transactional
 @Service
 @Transactional
 class AuthService(
-    private val authenticationManager: AuthenticationManager,
-    private val userRepository: UserRepository,
-    private val jwtUtil: JwtUtil,
-    @Value("\${jwt.expiration:86400}") private val jwtExpirationInSeconds: Int
+        private val authenticationManager: AuthenticationManager,
+        private val userRepository: UserRepository,
+        private val jwtUtil: JwtUtil,
+        @Value("\${jwt.expiration:86400}") private val jwtExpirationInSeconds: Int
 ) {
 
     fun authenticateUser(loginRequest: LoginRequest): LoginResponse {
         try {
-            val authentication: Authentication = authenticationManager.authenticate(
-                UsernamePasswordAuthenticationToken(
-                    loginRequest.username,
-                    loginRequest.password
-                )
-            )
+            val authentication: Authentication =
+                    authenticationManager.authenticate(
+                            UsernamePasswordAuthenticationToken(
+                                    loginRequest.username,
+                                    loginRequest.password
+                            )
+                    )
 
             val userDetails = authentication.principal as UserDetails
             val accessToken = jwtUtil.generateToken(authentication)
             val refreshToken = jwtUtil.generateRefreshToken(userDetails.username)
 
             // Update refresh token in database
-            val user = userRepository.findByUsernameAndDeletedFalse(userDetails.username)
-                ?: throw ApiException(ErrorCode.USER_NOT_FOUND)
+            val user =
+                    userRepository.findByUsernameAndDeletedFalse(userDetails.username)
+                            ?: throw ApiException(ErrorCode.USER_NOT_FOUND)
             user.refreshToken = refreshToken
             userRepository.save(user)
 
-            val userInfo = UserInfo(
-                username = userDetails.username,
-                name = user.name,
-                email = user.email,
-                authorities = user.authorities.map { authority -> authority.name }
-            )
+            val userInfo =
+                    UserInfo(
+                            username = userDetails.username,
+                            name = user.name,
+                            email = user.email,
+                            authorities = user.authorities.map { authority -> authority.name }
+                    )
 
             return LoginResponse(
-                accessToken = accessToken,
-                refreshToken = refreshToken,
-                expiresIn = jwtExpirationInSeconds.toLong(),
-                user = userInfo
+                    accessToken = accessToken,
+                    refreshToken = refreshToken,
+                    expiresIn = jwtExpirationInSeconds.toLong(),
+                    user = userInfo
             )
         } catch (e: BadCredentialsException) {
             throw ApiException(ErrorCode.INVALID_CREDENTIALS)
@@ -72,8 +76,9 @@ class AuthService(
         }
 
         val username = jwtUtil.getUsernameFromToken(refreshToken)
-        val user = userRepository.findByUsernameAndDeletedFalse(username)
-            ?: throw ApiException(ErrorCode.USER_NOT_FOUND)
+        val user =
+                userRepository.findByUsernameAndDeletedFalse(username)
+                        ?: throw ApiException(ErrorCode.USER_NOT_FOUND)
 
         if (user.refreshToken != refreshToken) {
             throw ApiException(ErrorCode.REFRESH_TOKEN_INVALID, "Refresh token mismatch")
@@ -82,8 +87,8 @@ class AuthService(
         val newAccessToken = jwtUtil.generateTokenFromUsername(username)
 
         return RefreshTokenResponse(
-            accessToken = newAccessToken,
-            expiresIn = jwtExpirationInSeconds.toLong()
+                accessToken = newAccessToken,
+                expiresIn = jwtExpirationInSeconds.toLong()
         )
     }
 
@@ -93,5 +98,26 @@ class AuthService(
             it.refreshToken = null
             userRepository.save(it)
         }
+    }
+
+    fun getUserProfile(username: String): ProfileResponse {
+        val user =
+                userRepository.findByUsernameAndDeletedFalse(username)
+                        ?: throw ApiException(ErrorCode.USER_NOT_FOUND)
+
+        return ProfileResponse(
+                username = user.username,
+                name = user.name,
+                email = user.email,
+                phoneNumber = user.phoneNumber,
+                dateOfBirth = user.dateOfBirth,
+                province = user.province,
+                grade = user.grade,
+                gender = user.gender,
+                lastLogin = user.lastLogin,
+                createdAt = user.createdAt,
+                updatedAt = user.updatedAt,
+                authorities = user.authorities.map { authority -> authority.name }
+        )
     }
 }

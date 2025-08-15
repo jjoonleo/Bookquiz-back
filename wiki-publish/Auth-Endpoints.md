@@ -83,6 +83,32 @@ Logout
 { "success": true, "message": "Logged out successfully", "data": null }
 ```
 
+Get Profile
+
+-   Method: GET
+-   Path: `/api/auth/profile`
+-   Auth: Bearer token required
+-   Source: [AuthController.kt: getProfile](https://github.com/jjoonleo/Bookquiz-back/blob/main/src/main/kotlin/kr/co/bookquiz/api/controller/AuthController.kt#L116-L125)
+-   Request: empty body
+-   Response `data`
+
+```json
+{
+    "username": "john_doe",
+    "name": "John Doe",
+    "email": "john@example.com",
+    "phoneNumber": "+821012345678",
+    "dateOfBirth": "1990-01-01T00:00:00",
+    "province": "SEOUL",
+    "grade": "GRADE_1",
+    "gender": true,
+    "lastLogin": "2024-01-01T10:00:00",
+    "createdAt": "2024-01-01T00:00:00",
+    "updatedAt": "2024-01-01T00:00:00",
+    "authorities": ["ROLE_USER"]
+}
+```
+
 Signup
 
 -   Method: POST
@@ -144,7 +170,7 @@ Headers
 
 Status Codes
 
--   200 OK: Success (login, refresh, logout, checks)
+-   200 OK: Success (login, refresh, logout, profile, checks)
 -   201 Created: Signup success
 -   400 Bad Request: Validation errors
 -   401 Unauthorized: Invalid/missing token, invalid credentials
@@ -164,6 +190,10 @@ curl -sX POST http://localhost:8080/api/auth/refresh \
 
 # Logout
 curl -sX POST http://localhost:8080/api/auth/logout \
+  -H 'Authorization: Bearer <accessToken>'
+
+# Get Profile
+curl -sX GET http://localhost:8080/api/auth/profile \
   -H 'Authorization: Bearer <accessToken>'
 
 # Signup
